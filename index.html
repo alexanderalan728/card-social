@@ -1,38 +1,75 @@
 <!DOCTYPE html>
 <html lang="zh">
 <head>
-  <meta charset="UTF-8" />
-  <title>抽卡交友</title>
+  <meta charset="UTF-8">
+
+  <!-- ✅ 微信白屏保险 -->
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+
+  <!-- ✅ 手机适配 -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>抽卡盲盒</title>
+
+  <style>
+    body {
+      font-size: 18px;
+      padding: 16px;
+      margin: 0;
+      line-height: 1.6;
+    }
+    input, select, button {
+      font-size: 18px;
+      padding: 10px;
+      width: 100%;
+      max-width: 420px;
+      box-sizing: border-box;
+    }
+    button {
+      margin-top: 10px;
+    }
+    .section {
+      margin-top: 32px;
+    }
+  </style>
+
+  <!-- ✅ Supabase 官方 CDN（微信稳定） -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
+
 <body>
 
-  <h2>抽卡交友 · 注册</h2>
+<p id="alive">页面已加载</p>
 
-  <input id="nickname" placeholder="昵称" /><br/><br/>
+<div class="section">
+  <h2>抽卡盲盒 · 注册</h2>
+
+  <input id="nickname" placeholder="昵称"><br><br>
 
   <select id="gender">
     <option value="男">男</option>
     <option value="女">女</option>
-  </select><br/><br/>
+  </select><br><br>
 
-  <input id="contact" placeholder="联系方式（微信/QQ）" /><br/><br/>
+  <input id="contact" placeholder="联系方式（微信 / 抖音 / QQ）"><br><br>
 
   <button id="btn">进入卡池</button>
 
   <p id="result"></p>
+</div>
 
-  <hr />
-
+<div class="section">
   <h2>抽一张卡</h2>
 
   <button id="drawMale">抽男生</button>
   <button id="drawFemale">抽女生</button>
 
   <div id="card" style="margin-top:20px;"></div>
+</div>
 
-  <!-- JS 一定写在 body 最下面 -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="./app.js"></script>
+<!-- ✅ 唯一 JS 入口 -->
+<script src="./app.js" defer></script>
 
 </body>
 </html>
