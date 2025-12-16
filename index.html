@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <title>抽卡交友</title>
+</head>
+<body>
+
+  <h2>抽卡交友 · 注册</h2>
+
+  <input id="nickname" placeholder="昵称" /><br/><br/>
+
+  <select id="gender">
+    <option value="男">男</option>
+    <option value="女">女</option>
+  </select><br/><br/>
+
+  <input id="contact" placeholder="联系方式（微信/QQ）" /><br/><br/>
+
+  <button id="btn">进入卡池</button>
+
+  <p id="result"></p>
+
+  <hr />
+
+  <h2>抽一张卡</h2>
+
+  <button id="drawMale">抽男生</button>
+  <button id="drawFemale">抽女生</button>
+
+  <div id="card" style="margin-top:20px;"></div>
+
+  <!-- JS 一定写在 body 最下面 -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="./app.js"></script>
+
+</body>
+</html>
