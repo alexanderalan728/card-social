@@ -1,7 +1,7 @@
 // ⚠️ 请将下面两行替换为您自己的 Supabase 配置！
 const SUPABASE_URL = https://jbyljemznjnqrixyohms.supabase.co
 const SUPABASE_ANON_KEY = sb_publishable_DI6RRfMXVspDzfnAkV61og_qpmnjmYg
-const client = supabase.createClient(supabaseUrl, supabaseKey);
+const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // 1. 提交名片功能
 async function submitCard() {
