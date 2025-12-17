@@ -1,96 +1,82 @@
-document.addEventListener("DOMContentLoaded", () => {
+// ⚠️ 请将下面两行替换为您自己的 Supabase 配置！
+const SUPABASE_URL = "https://uvaofrkejypfagfvpxqk.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_gjhZbHIGXXRs5TervkJO5g_VN1L85qM";
+const client = supabase.createClient(supabaseUrl, supabaseKey);
 
-  // ✅ JS 是否运行（微信必看）
-  const alive = document.getElementById("alive");
-  if (alive) alive.innerText = "JS 已运行";
+// 1. 提交名片功能
+async function submitCard() {
+    const nickname = document.getElementById('nickname').value;
+    const gender = document.getElementById('gender').value;
+    const contact = document.getElementById('contact').value;
 
-  // 🔑 Supabase 配置
-  const SUPABASE_URL = "https://uvaofrkejypfagfvpxqk.supabase.co";
-  const SUPABASE_ANON_KEY = "sb_publishable_gjhZbHIGXXRs5TervkJO5g_VN1L85qM";
-
-  // ✅ 同步创建（不要动态加载）
-  const supabase = window.supabase.createClient(
-    SUPABASE_URL,
-    SUPABASE_ANON_KEY
-  );
-
-  // =====================
-  // 注册进入卡池
-  // =====================
-  const btn = document.getElementById("btn");
-  const result = document.getElementById("result");
-
-  btn.onclick = async () => {
-    result.innerText = "正在注册...";
-
-    const nickname = document.getElementById("nickname").value.trim();
-    const gender = document.getElementById("gender").value;
-    const contact = document.getElementById("contact").value.trim();
-
+    // 简单校验
     if (!nickname || !contact) {
-      result.innerText = "请填写完整信息";
-      return;
+        alert('请把昵称和联系方式填完整哦！');
+        return;
     }
 
-    const { error } = await supabase
-      .from("users")
-      .insert([{ nickname, gender, contact }]);
+    const btn = document.querySelector('.btn-submit');
+    const originalText = btn.innerText;
+    btn.innerText = '提交中...';
+    btn.disabled = true;
+
+    // 插入数据到 users 表
+    const { data, error } = await client
+        .from('users')
+        .insert([
+            { nickname: nickname, gender: gender, contact: contact }
+        ]);
+
+    btn.innerText = originalText;
+    btn.disabled = false;
 
     if (error) {
-      result.innerText = "你已经在卡池里了 😄";
-      return;
+        // 专门处理“重复提交”的错误 (错误码 23505)
+        if (error.code === '23505') {
+            alert('🚫 这个联系方式已经在这个池子里啦，请勿重复提交！');
+        } else {
+            alert('提交失败，请重试：' + error.message);
+        }
+    } else {
+        alert('✅ 放入成功！现在你可以去抽别人了，也可以等待被别人抽中！');
+        // 清空输入框
+        document.getElementById('nickname').value = '';
+        document.getElementById('contact').value = '';
+    }
+}
+
+// 2. 抽取盲盒功能
+async function drawCard(targetGender) {
+    const resBox = document.getElementById('resultArea');
+    resBox.style.display = 'none'; // 先隐藏旧结果
+
+    // 先获取这个性别一共有多少人
+    // 注意：这里用了一个简单的方法，先拉取所有该性别的ID，然后随机选一个
+    // (数据量大时建议优化，但几千人以内这个方法最快)
+    
+    const { data: users, error } = await client
+        .from('users')
+        .select('*')
+        .eq('gender', targetGender);
+
+    if (error) {
+        alert('连接数据库失败');
+        return;
     }
 
-    localStorage.setItem("my_contact", contact);
-    localStorage.removeItem("used_cards"); // 新用户清空抽卡记录
-    result.innerText = "注册成功，已进入卡池 🎉";
-  };
-
-  // =====================
-  // 抽卡逻辑
-  // =====================
-  const card = document.getElementById("card");
-
-  async function drawCard(targetGender) {
-    card.innerText = "正在抽卡...";
-
-    const myContact = localStorage.getItem("my_contact");
-    if (!myContact) {
-      card.innerText = "请先注册进入卡池";
-      return;
+    if (!users || users.length === 0) {
+        alert(`还没有 ${targetGender} 生放入名片哦，你是第一个的话快去放入吧！`);
+        return;
     }
 
-    const { data, error } = await supabase
-      .from("users")
-      .select("nickname, gender, contact")
-      .eq("gender", targetGender)
-      .neq("contact", myContact);
+    // 随机选一个
+    const randomIndex = Math.floor(Math.random() * users.length);
+    const luckyUser = users[randomIndex];
 
-    if (error || !data || data.length === 0) {
-      card.innerText = "暂时没有可抽的卡";
-      return;
-    }
-
-    const used = JSON.parse(localStorage.getItem("used_cards") || "[]");
-    const available = data.filter(u => !used.includes(u.contact));
-
-    if (available.length === 0) {
-      card.innerText = "已经抽完啦";
-      return;
-    }
-
-    const user = available[Math.floor(Math.random() * available.length)];
-    used.push(user.contact);
-    localStorage.setItem("used_cards", JSON.stringify(used));
-
-    card.innerHTML = `
-      <h3>🎉 抽到一张卡！</h3>
-      <p>昵称：${user.nickname}</p>
-      <p>性别：${user.gender}</p>
-      <p>联系方式：${user.contact}</p>
-    `;
-  }
-
-  document.getElementById("drawMale").onclick = () => drawCard("男");
-  document.getElementById("drawFemale").onclick = () => drawCard("女");
-});
+    // 展示结果
+    document.getElementById('resNick').innerText = luckyUser.nickname;
+    document.getElementById('resContact').innerText = '微信号：' + luckyUser.contact;
+    document.getElementById('resIcon').innerText = targetGender === '男' ? '👦' : '👧';
+    
+    resBox.style.display = 'block';
+}
