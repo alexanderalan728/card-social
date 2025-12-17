@@ -1,6 +1,6 @@
 // ⚠️ 请将下面两行替换为您自己的 Supabase 配置！
-const SUPABASE_URL = "https://uvaofrkejypfagfvpxqk.supabase.co";
-const SUPABASE_ANON_KEY = "sb_publishable_gjhZbHIGXXRs5TervkJO5g_VN1L85qM";
+const SUPABASE_URL = https://jbyljemznjnqrixyohms.supabase.co
+const SUPABASE_ANON_KEY = sb_publishable_DI6RRfMXVspDzfnAkV61og_qpmnjmYg
 const client = supabase.createClient(supabaseUrl, supabaseKey);
 
 // 1. 提交名片功能
