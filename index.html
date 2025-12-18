@@ -4,149 +4,44 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>缘分盲盒 - 遇见你的TA</title>
-    <!-- 引入 Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        /* 全局样式 - 更加现代和柔和 */
-        body {
-            margin: 0;
-            padding: 0;
-            background: #f0f2f5;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            color: #333;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        /* 顶部导航栏 */
-        .navbar {
-            width: 100%;
-            background: white;
-            padding: 15px 0;
-            text-align: center;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
+        /* 样式表：让界面变漂亮 */
+        body { margin: 0; padding: 0; background: #f0f2f5; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: #333; min-height: 100vh; display: flex; flex-direction: column; align-items: center; }
+        .navbar { width: 100%; background: white; padding: 15px 0; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 100; }
         .navbar h1 { margin: 0; font-size: 18px; font-weight: 600; color: #333; }
-
-        /* 主容器 */
-        .container {
-            width: 90%;
-            max-width: 400px;
-            margin-top: 20px;
-            padding-bottom: 40px;
-        }
-
-        /* 卡片通用样式 */
-        .card {
-            background: white;
-            border-radius: 16px;
-            padding: 20px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
-            margin-bottom: 25px;
-            transition: transform 0.2s;
-        }
-        .card-header {
-            font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-        }
+        .container { width: 90%; max-width: 400px; margin-top: 20px; padding-bottom: 40px; }
+        .card { background: white; border-radius: 16px; padding: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); margin-bottom: 25px; transition: transform 0.2s; }
+        .card-header { font-size: 18px; font-weight: bold; margin-bottom: 15px; display: flex; align-items: center; }
         .card-header span { margin-right: 8px; font-size: 22px; }
-
-        /* 表单样式 */
         .form-group { margin-bottom: 15px; }
         .form-label { display: block; margin-bottom: 8px; font-size: 14px; color: #666; }
-        .form-input, .form-select {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #e0e0e0;
-            border-radius: 10px;
-            font-size: 16px;
-            box-sizing: border-box; /* 关键：防止输入框撑破布局 */
-            background: #fafafa;
-            outline: none;
-            transition: border 0.3s;
-        }
+        .form-input, .form-select { width: 100%; padding: 12px; border: 1px solid #e0e0e0; border-radius: 10px; font-size: 16px; box-sizing: border-box; background: #fafafa; outline: none; transition: border 0.3s; }
         .form-input:focus { border-color: #ff9a9e; background: white; }
+        
+        /* 关键更新：让年龄和城市排成一行 */
+        .form-row { display: flex; gap: 10px; }
+        .form-row .form-group { flex: 1; }
 
-        /* 按钮样式 */
-        .btn {
-            width: 100%;
-            padding: 14px;
-            border: none;
-            border-radius: 12px;
-            font-size: 16px;
-            font-weight: bold;
-            color: white;
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
-        }
+        .btn { width: 100%; padding: 14px; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; color: white; cursor: pointer; position: relative; overflow: hidden; }
         .btn:active { opacity: 0.9; transform: scale(0.98); }
-
-        .btn-submit {
-            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
-            color: #d63384;
-            box-shadow: 0 4px 15px rgba(255, 154, 158, 0.4);
-        }
-
-        .btn-draw-male {
-            background: linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%);
-            color: #0056b3;
-            margin-bottom: 15px;
-            box-shadow: 0 4px 15px rgba(161, 196, 253, 0.4);
-        }
-
-        .btn-draw-female {
-            background: linear-gradient(135deg, #fad0c4 0%, #ffd1ff 100%);
-            color: #d6336c;
-            box-shadow: 0 4px 15px rgba(250, 208, 196, 0.4);
-        }
-
-        /* 结果展示区 */
-        .result-box {
-            display: none; /* 默认隐藏 */
-            background: #fff9f0;
-            border: 2px dashed #ffdac1;
-            border-radius: 12px;
-            padding: 20px;
-            text-align: center;
-            margin-top: 20px;
-            animation: popIn 0.3s ease;
-        }
+        .btn-submit { background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%); color: #d63384; box-shadow: 0 4px 15px rgba(255, 154, 158, 0.4); }
+        .btn-draw-male { background: linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%); color: #0056b3; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(161, 196, 253, 0.4); }
+        .btn-draw-female { background: linear-gradient(135deg, #fad0c4 0%, #ffd1ff 100%); color: #d6336c; box-shadow: 0 4px 15px rgba(250, 208, 196, 0.4); }
+        
+        .result-box { display: none; background: #fff9f0; border: 2px dashed #ffdac1; border-radius: 12px; padding: 20px; text-align: center; margin-top: 20px; animation: popIn 0.3s ease; }
         .res-avatar { font-size: 50px; margin-bottom: 10px; display: block; }
         .res-name { font-size: 20px; font-weight: bold; color: #333; margin-bottom: 5px; }
-        .res-contact { 
-            background: white; 
-            padding: 10px; 
-            border-radius: 8px; 
-            margin-top: 10px; 
-            color: #ff6b6b; 
-            font-weight: bold;
-            border: 1px solid #ffe3e3;
-            user-select: all; /* 方便复制 */
-        }
+        .res-details { font-size: 14px; color: #666; margin-bottom: 10px; background: #fff; padding: 4px 10px; border-radius: 20px; display: inline-block; }
+        .res-contact { background: white; padding: 10px; border-radius: 8px; margin-top: 10px; color: #ff6b6b; font-weight: bold; border: 1px solid #ffe3e3; user-select: all; }
         .tips { font-size: 12px; color: #999; margin-top: 8px; }
-
-        @keyframes popIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        @keyframes popIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
-
-    <div class="navbar">
-        <h1>💘 缘分盲盒</h1>
-    </div>
-
+    <div class="navbar"><h1>💘 缘分盲盒</h1></div>
     <div class="container">
+        
         <!-- 模块一：放入名片 -->
         <div class="card">
             <div class="card-header"><span>📝</span> 放入名片</div>
@@ -162,6 +57,18 @@
                     <option value="男">我是男生 👦</option>
                     <option value="女">我是女生 👧</option>
                 </select>
+            </div>
+
+            <!-- 关键更新：这里加了年龄和城市的输入框 -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">年龄</label>
+                    <input type="number" id="age" class="form-input" placeholder="24">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">所在城市</label>
+                    <input type="text" id="city" class="form-input" placeholder="北京">
+                </div>
             </div>
 
             <div class="form-group">
@@ -180,16 +87,17 @@
             <button class="btn btn-draw-male" onclick="drawCard('男')">抽取一位 👦 男生</button>
             <button class="btn btn-draw-female" onclick="drawCard('女')">抽取一位 👧 女生</button>
 
-            <!-- 抽奖结果显示在这里 -->
+            <!-- 结果展示 -->
             <div id="resultArea" class="result-box">
                 <span class="res-avatar" id="resIcon">🎉</span>
                 <div class="res-name" id="resNick">昵称</div>
+                <!-- 关键更新：这里加了显示年龄城市的地方 -->
+                <div class="res-details" id="resInfo">--岁 | --</div>
                 <div class="res-contact" id="resContact">微信号：xxx</div>
                 <div class="tips">长按复制微信号，快去打招呼吧！</div>
             </div>
         </div>
     </div>
-
     <script src="app.js"></script>
 </body>
 </html>
