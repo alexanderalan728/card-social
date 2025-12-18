@@ -3,10 +3,9 @@ const SUPABASE_URL = 'https://jbyljemznjnqrixyohms.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_DI6RRfMXVspDzfnAkV61og_qpmnjmYg';
 const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// 敏感词
 const badWords = ['约炮', '招嫖', '兼职', '刷单', '贷款', '裸聊', 'av', '加微', '死', '傻逼'];
 
-// 1. 提交名片功能
+// 1. 提交名片功能 (已移除每天限制，方便您测试)
 async function submitCard() {
     const nickname = document.getElementById('nickname').value || '';
     const gender = document.getElementById('gender').value;
@@ -40,20 +39,16 @@ async function submitCard() {
     btn.disabled = false;
 
     if (error) {
-        // 特殊处理：如果提示“重复提交”，说明他以前注册过
         if (error.code === '23505') {
             alert('🎉 您之前已经放入过名片啦！身份验证成功，快去抽卡吧！');
-            // 关键点：既然他已经在库里了，就补发一个“通行证”
             localStorage.setItem('hasRegistered', 'true');
         } else {
             alert('提交失败，请重试：' + error.message);
         }
     } else {
         alert('✅ 放入成功！您现在拥有抽卡资格了！');
-        // 关键点：注册成功，发“通行证”
         localStorage.setItem('hasRegistered', 'true');
         
-        // 清空输入框
         document.getElementById('nickname').value = '';
         document.getElementById('contact').value = '';
         document.getElementById('age').value = '';
@@ -61,28 +56,38 @@ async function submitCard() {
     }
 }
 
-// 2. 抽取盲盒功能
+// 2. 抽取盲盒功能 (加了开箱特效)
 async function drawCard(targetGender) {
-    // 🛡️ 第一步：检查有没有“通行证”
     const hasRegistered = localStorage.getItem('hasRegistered');
     if (!hasRegistered) {
         alert('🔒 为了公平起见，请先在上方“放入名片”加入卡池，才能抽取别人哦！');
-        // 自动滚动到顶部，提示他去填表
         window.scrollTo({ top: 0, behavior: 'smooth' });
-        return; // 直接拦截，不准往下执行
+        return;
     }
 
     const resBox = document.getElementById('resultArea');
     resBox.style.display = 'none';
 
-    // 获取该性别所有用户
+    // ✨ 增加“开箱中...”的按钮状态
+    const btn = targetGender === '男' ? document.querySelector('.btn-draw-male') : document.querySelector('.btn-draw-female');
+    const originalText = btn.innerText;
+    btn.innerText = '正在寻找缘分...';
+    btn.disabled = true;
+
+    // 模拟一点点延迟，更有感觉 (800毫秒)
+    await new Promise(r => setTimeout(r, 800));
+
     const { data: users, error } = await client
         .from('users')
         .select('*')
         .eq('gender', targetGender);
 
+    // 恢复按钮
+    btn.innerText = originalText;
+    btn.disabled = false;
+
     if (error) {
-        alert('连接数据库失败，请刷新重试');
+        alert('网络有点卡，请重试');
         return;
     }
 
@@ -95,7 +100,7 @@ async function drawCard(targetGender) {
     const luckyUser = users[randomIndex];
 
     document.getElementById('resNick').innerText = luckyUser.nickname;
-    document.getElementById('resContact').innerText = '微信号：' + luckyUser.contact;
+    document.getElementById('resContact').innerText = luckyUser.contact; // 存纯文本方便复制
     document.getElementById('resIcon').innerText = targetGender === '男' ? '👦' : '👧';
     
     const userAge = luckyUser.age ? luckyUser.age + '岁' : '未知年龄';
@@ -103,4 +108,17 @@ async function drawCard(targetGender) {
     document.getElementById('resInfo').innerText = `${userAge} | ${userCity}`;
     
     resBox.style.display = 'block';
+    
+    // 自动滚动到底部看结果
+    resBox.scrollIntoView({ behavior: 'smooth' });
+}
+
+// 3. 点击复制功能
+function copyContact() {
+    const contactText = document.getElementById('resContact').innerText;
+    navigator.clipboard.writeText(contactText).then(() => {
+        alert('✅ 微信号已复制，快去微信添加吧！');
+    }).catch(err => {
+        alert('复制失败，请手动长按复制');
+    });
 }
