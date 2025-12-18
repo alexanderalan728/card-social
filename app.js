@@ -1,30 +1,27 @@
-// ⚠️ 请先把自己原来的 URL 和 KEY 填在下面引号里！
+// ⚠️ 记得换成您自己的 URL 和 KEY (保持不变)
 const SUPABASE_URL = 'https://jbyljemznjnqrixyohms.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_DI6RRfMXVspDzfnAkV61og_qpmnjmYg';
 const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// --- 🛡️ 敏感词黑名单 (您可以随时在这里加词) ---
+// 敏感词
 const badWords = ['约炮', '招嫖', '兼职', '刷单', '贷款', '裸聊', 'av', '加微', '死', '傻逼'];
 
 // 1. 提交名片功能
 async function submitCard() {
-    // 获取页面上的输入值
     const nickname = document.getElementById('nickname').value || '';
     const gender = document.getElementById('gender').value;
-    const age = document.getElementById('age').value || '';    // 新增：年龄
-    const city = document.getElementById('city').value || '';  // 新增：城市
+    const age = document.getElementById('age').value || '';
+    const city = document.getElementById('city').value || '';
     const contact = document.getElementById('contact').value || '';
 
-    // --- 🛡️ 第一道关卡：敏感词过滤 ---
-    // 检查昵称和城市是否包含违规词
+    // 敏感词过滤
     for (let word of badWords) {
         if (nickname.includes(word) || city.includes(word)) {
             alert('🚫 输入内容包含敏感词，请修改后重试！');
-            return; // 直接打断，不准提交
+            return;
         }
     }
 
-    // --- 第二道关卡：非空校验 ---
     if (!nickname || !contact || !age || !city) {
         alert('请把昵称、年龄、城市和联系方式都填完整哦！');
         return;
@@ -35,30 +32,27 @@ async function submitCard() {
     btn.innerText = '提交中...';
     btn.disabled = true;
 
-    // 插入数据
     const { data, error } = await client
         .from('users')
-        .insert([
-            { 
-                nickname: nickname, 
-                gender: gender, 
-                contact: contact,
-                age: age,
-                city: city
-            }
-        ]);
+        .insert([{ nickname, gender, contact, age, city }]);
 
     btn.innerText = originalText;
     btn.disabled = false;
 
     if (error) {
+        // 特殊处理：如果提示“重复提交”，说明他以前注册过
         if (error.code === '23505') {
-            alert('🚫 这个联系方式已经在这个池子里啦，请勿重复提交！');
+            alert('🎉 您之前已经放入过名片啦！身份验证成功，快去抽卡吧！');
+            // 关键点：既然他已经在库里了，就补发一个“通行证”
+            localStorage.setItem('hasRegistered', 'true');
         } else {
             alert('提交失败，请重试：' + error.message);
         }
     } else {
-        alert('✅ 放入成功！坐等缘分降临！');
+        alert('✅ 放入成功！您现在拥有抽卡资格了！');
+        // 关键点：注册成功，发“通行证”
+        localStorage.setItem('hasRegistered', 'true');
+        
         // 清空输入框
         document.getElementById('nickname').value = '';
         document.getElementById('contact').value = '';
@@ -69,6 +63,15 @@ async function submitCard() {
 
 // 2. 抽取盲盒功能
 async function drawCard(targetGender) {
+    // 🛡️ 第一步：检查有没有“通行证”
+    const hasRegistered = localStorage.getItem('hasRegistered');
+    if (!hasRegistered) {
+        alert('🔒 为了公平起见，请先在上方“放入名片”加入卡池，才能抽取别人哦！');
+        // 自动滚动到顶部，提示他去填表
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return; // 直接拦截，不准往下执行
+    }
+
     const resBox = document.getElementById('resultArea');
     resBox.style.display = 'none';
 
@@ -88,16 +91,13 @@ async function drawCard(targetGender) {
         return;
     }
 
-    // 随机选一个
     const randomIndex = Math.floor(Math.random() * users.length);
     const luckyUser = users[randomIndex];
 
-    // 展示结果
     document.getElementById('resNick').innerText = luckyUser.nickname;
     document.getElementById('resContact').innerText = '微信号：' + luckyUser.contact;
     document.getElementById('resIcon').innerText = targetGender === '男' ? '👦' : '👧';
     
-    // 智能展示年龄城市（防止老数据报错）
     const userAge = luckyUser.age ? luckyUser.age + '岁' : '未知年龄';
     const userCity = luckyUser.city ? luckyUser.city : '未知城市';
     document.getElementById('resInfo').innerText = `${userAge} | ${userCity}`;
