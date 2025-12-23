@@ -59,7 +59,16 @@ async function submitCard() {
 
 // 2. 抽取盲盒功能 (加了开箱特效)
 async function drawCard(targetGender) {
-    const hasRegistered = localStorage.getItem('hasRegistered');
+    const lastDraw = localStorage.getItem('lastDrawTime');
+const now = Date.now();
+
+if (lastDraw && now - lastDraw < 30000) {
+    alert('⏳ 请稍等 30 秒再抽一次哦～');
+    return;
+}
+
+localStorage.setItem('lastDrawTime', now);
+const hasRegistered = localStorage.getItem('hasRegistered');
     if (!hasRegistered) {
         alert('🔒 为了公平起见，请先在上方“放入名片”加入卡池，才能抽取别人哦！');
         window.scrollTo({ top: 0, behavior: 'smooth' });
