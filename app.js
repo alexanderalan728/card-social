@@ -48,7 +48,8 @@ async function submitCard() {
     } else {
         alert('✅ 放入成功！您现在拥有抽卡资格了！');
         localStorage.setItem('hasRegistered', 'true');
-        
+        localStorage.setItem('myContact', contact);
+
         document.getElementById('nickname').value = '';
         document.getElementById('contact').value = '';
         document.getElementById('age').value = '';
@@ -77,10 +78,13 @@ async function drawCard(targetGender) {
     // 模拟一点点延迟，更有感觉 (800毫秒)
     await new Promise(r => setTimeout(r, 800));
 
-    const { data: users, error } = await client
-        .from('users')
-        .select('*')
-        .eq('gender', targetGender);
+    const myContact = localStorage.getItem('myContact');
+
+const { data: users, error } = await client
+  .from('users')
+  .select('*')
+  .eq('gender', targetGender)
+  .neq('contact', myContact);
 
     // 恢复按钮
     btn.innerText = originalText;
