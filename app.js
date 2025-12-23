@@ -115,24 +115,44 @@ const drawnData = JSON.parse(localStorage.getItem(drawnKey)) || {
     ids: [],
     time: Date.now()
 };
+// === 防重复抽人（24小时内） ===
+const drawnKey = `drawn_${targetGender}`;
+let drawnData = JSON.parse(localStorage.getItem(drawnKey));
 
-// 超过 24 小时自动重置
+if (!drawnData) {
+    drawnData = {
+        ids: [],
+        time: Date.now()
+    };
+}
+
+// 超过 24 小时重置
 if (Date.now() - drawnData.time > 24 * 60 * 60 * 1000) {
     drawnData.ids = [];
     drawnData.time = Date.now();
 }
 
-// 过滤掉已经抽过的人
+// 过滤已抽过的人
 const availableUsers = users.filter(u => !drawnData.ids.includes(u.id));
 
 if (availableUsers.length === 0) {
-    alert('🎉 这一性别你已经抽完一轮啦，24 小时后再来吧～');
+    alert('🎉 这个性别已经抽完一轮啦，24 小时后再来吧～');
     drawnData.ids = [];
     drawnData.time = Date.now();
     localStorage.setItem(drawnKey, JSON.stringify(drawnData));
     return;
 }
-const luckyUser = availableUsers[Math.floor(Math.random() * availableUsers.length)];
+
+// 随机抽一个“没抽过的”
+const luckyUser = availableUsers[
+    Math.floor(Math.random() * availableUsers.length)
+];
+
+// 记录本次已抽
+drawnData.ids.push(luckyUser.id);
+localStorage.setItem(drawnKey, JSON.stringify(drawnData));
+
+const luckyUser = users[randomIndex];
 
     document.getElementById('resNick').innerText = luckyUser.nickname;
     document.getElementById('resContact').innerText = luckyUser.contact; // 存纯文本方便复制
