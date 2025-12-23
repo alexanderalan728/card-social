@@ -110,7 +110,29 @@ const { data: users, error } = await client
     }
 
     const randomIndex = Math.floor(Math.random() * users.length);
-    const luckyUser = users[randomIndex];
+    const drawnKey = `drawn_${targetGender}`;
+const drawnData = JSON.parse(localStorage.getItem(drawnKey)) || {
+    ids: [],
+    time: Date.now()
+};
+
+// 超过 24 小时自动重置
+if (Date.now() - drawnData.time > 24 * 60 * 60 * 1000) {
+    drawnData.ids = [];
+    drawnData.time = Date.now();
+}
+
+// 过滤掉已经抽过的人
+const availableUsers = users.filter(u => !drawnData.ids.includes(u.id));
+
+if (availableUsers.length === 0) {
+    alert('🎉 这一性别你已经抽完一轮啦，24 小时后再来吧～');
+    drawnData.ids = [];
+    drawnData.time = Date.now();
+    localStorage.setItem(drawnKey, JSON.stringify(drawnData));
+    return;
+}
+const luckyUser = availableUsers[Math.floor(Math.random() * availableUsers.length)];
 
     document.getElementById('resNick').innerText = luckyUser.nickname;
     document.getElementById('resContact').innerText = luckyUser.contact; // 存纯文本方便复制
