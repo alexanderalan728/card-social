@@ -150,7 +150,17 @@
     </div>
 </div>
 
-<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<!-- 换成国内更快的源，并加上 defer 确保加载顺序 -->
+<script src="https://cdn.bootcdn.net/ajax/libs/supabase/2.39.7/supabase-js.js"></script>
+<script>
+    // 增加一个简单的检查，如果库没加载成功就报错提醒
+    window.onload = function() {
+        if (typeof supabase === 'undefined') {
+            alert('Supabase 库加载失败，请检查网络或更换 CDN 源');
+        }
+    }
+</script>
 <script src="app.js"></script>
+
 </body>
 </html>
