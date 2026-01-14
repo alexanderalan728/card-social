@@ -3,108 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>信号实验室 - 捕捉你的同频信号</title>
+    <title>信号实验室 - Signal Lab</title>
+    <!-- 1. 使用国内最快的 360 镜像库，确保库能秒加载 -->
+    <script src="https://lib.baomitu.com/supabase/2.39.7/supabase-js.js"></script>
     <style>
-        :root {
-            --primary: #8a2be2;
-            --accent: #ff00ff;
-            --bg: #0f0c29;
-            --glass: rgba(255, 255, 255, 0.1);
-        }
-        body {
-            margin: 0; padding: 0;
-            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
-            font-family: 'PingFang SC', -apple-system, sans-serif;
-            color: #fff;
-            min-height: 100vh;
-            display: flex; flex-direction: column; align-items: center;
-        }
-        .navbar {
-            width: 100%; padding: 20px 0; text-align: center;
-            background: var(--glass); backdrop-filter: blur(10px);
-            position: sticky; top: 0; z-index: 100;
-        }
-        .navbar h1 { margin: 0; font-size: 20px; letter-spacing: 2px; }
-        .count-text { font-size: 12px; opacity: 0.8; margin-top: 5px; }
+        :root { --primary: #8a2be2; --accent: #ff00ff; --bg: #0f0c29; --glass: rgba(255, 255, 255, 0.1); }
+        body { margin: 0; padding: 0; background: linear-gradient(135deg, #0f0c29, #302b63, #24243e); font-family: -apple-system, sans-serif; color: #fff; min-height: 100vh; display: flex; flex-direction: column; align-items: center; }
+        .navbar { width: 100%; padding: 20px 0; text-align: center; background: var(--glass); backdrop-filter: blur(10px); position: sticky; top: 0; z-index: 100; }
         .container { width: 92%; max-width: 450px; margin-top: 20px; padding-bottom: 50px; }
-        
-        /* 玻璃拟态卡片 */
-        .card {
-            background: var(--glass);
-            backdrop-filter: blur(15px);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 24px;
-            padding: 25px;
-            margin-bottom: 25px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-        }
-        .card-header { font-size: 18px; font-weight: bold; margin-bottom: 20px; display: flex; align-items: center; }
-        .card-header span { margin-right: 10px; }
-
-        /* 表单样式 */
-        .form-input, .form-select {
-            width: 100%; padding: 14px; margin-bottom: 15px;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.2);
-            border-radius: 12px; color: #fff; font-size: 15px; outline: none;
-            box-sizing: border-box;
-        }
-        .form-label { display: block; margin-bottom: 8px; font-size: 13px; opacity: 0.7; }
-
-        /* 标签选择器 - 对应你图片里的内容 */
+        .card { background: var(--glass); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; padding: 25px; margin-bottom: 25px; }
+        .form-input, .form-select { width: 100%; padding: 14px; margin-bottom: 15px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; color: #fff; outline: none; box-sizing: border-box; }
         .tag-container { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 15px; }
-        .tag-item {
-            padding: 6px 14px; border-radius: 20px; font-size: 12px;
-            background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
-            cursor: pointer; transition: 0.3s;
-        }
-        .tag-item.active { background: var(--primary); border-color: var(--accent); transform: scale(1.05); }
-
-        /* 按钮 */
-        .btn {
-            width: 100%; padding: 16px; border: none; border-radius: 15px;
-            font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.3s;
-        }
-        .btn-submit { background: linear-gradient(90deg, #8a2be2, #ff00ff); color: #fff; }
-        .btn-draw-male { background: #4facfe; color: #fff; margin-bottom: 15px; }
-        .btn-draw-female { background: #fa709a; color: #fff; }
-        .btn:disabled { opacity: 0.5; }
-
-        /* 结果展示 */
-        .result-box {
-            display: none; text-align: center; margin-top: 20px;
-            padding: 20px; border-radius: 20px; background: rgba(255,255,255,0.15);
-            animation: fadeIn 0.5s ease forwards;
-        }
+        .tag-item { padding: 6px 14px; border-radius: 20px; font-size: 12px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); cursor: pointer; }
+        .tag-item.active { background: var(--primary); border-color: var(--accent); }
+        .btn { width: 100%; padding: 16px; border: none; border-radius: 15px; font-size: 16px; font-weight: bold; cursor: pointer; color: #fff; }
+        .btn-submit { background: linear-gradient(90deg, #8a2be2, #ff00ff); }
+        .btn-draw-male { background: #4facfe; margin-bottom: 15px; }
+        .btn-draw-female { background: #fa709a; }
+        .result-box { display: none; text-align: center; margin-top: 20px; padding: 20px; border-radius: 20px; background: rgba(255,255,255,0.15); }
         .res-mbti { background: #ff00ff; padding: 2px 8px; border-radius: 5px; font-size: 12px; margin-left: 10px; }
-        .res-contact {
-            margin-top: 15px; padding: 15px; background: #fff; color: #000;
-            border-radius: 12px; font-weight: bold; cursor: pointer;
-        }
-
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .res-contact { margin-top: 15px; padding: 15px; background: #fff; color: #000; border-radius: 12px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
 <div class="navbar">
     <h1>🧩 信号实验室</h1>
-    <p class="count-text">已捕获 <span id="totalCount" style="color:#00f2fe">...</span> 个频率信号</p>
+    <p style="font-size:12px; opacity:0.8;">已捕获 <span id="totalCount" style="color:#00f2fe">...</span> 个频率信号</p>
 </div>
 
 <div class="container">
-    <!-- 模块一：录入频率 -->
     <div class="card">
-        <div class="card-header"><span>📡</span> 发射你的信号</div>
+        <div style="font-weight:bold; margin-bottom:15px;">📡 发射你的信号</div>
         <input type="text" id="nickname" class="form-input" placeholder="代号 (昵称)">
         <div style="display: flex; gap: 10px;">
-            <select id="gender" class="form-select" style="flex:1">
-                <option value="男">男生 👦</option>
-                <option value="女">女生 👧</option>
-            </select>
+            <select id="gender" class="form-select" style="flex:1"><option value="男">男生 👦</option><option value="女">女生 👧</option></select>
             <input type="number" id="age" class="form-input" style="flex:1" placeholder="年龄">
         </div>
-        <input type="text" id="city" class="form-input" placeholder="坐标城市">
+        <input type="text" id="city" class="form-input" placeholder="所在城市">
         <select id="mbti" class="form-select">
             <option value="">选择你的 MBTI 人格</option>
             <option value="INFP">INFP 调停者</option><option value="ENFP">ENFP 竞选者</option>
@@ -116,32 +52,23 @@
             <option value="ISFJ">ISFJ 守卫者</option><option value="ESFJ">ESFJ 执政官</option>
             <option value="ISTJ">ISTJ 物流师</option><option value="ESTJ">ESTJ 总管</option>
         </select>
-        
-        <label class="form-label">个性标签 (多选)</label>
         <div class="tag-container" id="tagPicker">
-            <!-- 对应图片标签 -->
             <div class="tag-item">社牛</div><div class="tag-item">社恐</div>
             <div class="tag-item">游戏大佬</div><div class="tag-item">纯爱战神</div>
-            <div class="tag-item">恋爱脑</div><div class="tag-item">熬夜冠军</div>
-            <div class="tag-item">穿搭达人</div><div class="tag-item">搞笑女/男</div>
-            <div class="tag-item">健身达人</div><div class="tag-item">网瘾少年</div>
+            <div class="tag-item">熬夜冠军</div><div class="tag-item">搞笑男/女</div>
         </div>
-
-        <input type="text" id="contact" class="form-input" placeholder="联系方式 (微信/QQ)">
-        <button class="btn btn-submit" onclick="submitCard()">进入信号池</button>
+        <input type="text" id="contact" class="form-input" placeholder="微信号 (必填)">
+        <button class="btn btn-submit" onclick="submitCard()">发射信号</button>
     </div>
 
-    <!-- 模块二：捕捉信号 -->
     <div class="card">
-        <div class="card-header"><span>🔍</span> 捕捉同频信号</div>
-        <button class="btn btn-draw-male" onclick="drawCard('男')">捕捉男生信号 👦</button>
-        <button class="btn btn-draw-female" onclick="drawCard('女')">捕捉女生信号 👧</button>
-
+        <div style="font-weight:bold; margin-bottom:15px;">🔍 捕捉同频信号</div>
+        <button class="btn btn-draw-male" onclick="drawCard('男')">捕捉男生 👦</button>
+        <button class="btn btn-draw-female" onclick="drawCard('女')">捕捉女生 👧</button>
         <div id="resultArea" class="result-box">
-            <div style="font-size: 40px;" id="resIcon">🛸</div>
+            <div style="font-size: 40px;">🛸</div>
             <div style="font-size: 20px; font-weight: bold; margin: 10px 0;">
-                <span id="resNick">代号</span>
-                <span id="resMbti" class="res-mbti">MBTI</span>
+                <span id="resNick">代号</span><span id="resMbti" class="res-mbti">MBTI</span>
             </div>
             <div id="resInfo" style="font-size: 14px; opacity: 0.8; margin-bottom: 10px;">--岁 | --</div>
             <div id="resTags" class="tag-container" style="justify-content: center;"></div>
@@ -150,17 +77,101 @@
     </div>
 </div>
 
-<!-- 换成国内更快的源，并加上 defer 确保加载顺序 -->
-<script src="https://cdn.bootcdn.net/ajax/libs/supabase/2.39.7/supabase-js.js"></script>
 <script>
-    // 增加一个简单的检查，如果库没加载成功就报错提醒
-    window.onload = function() {
-        if (typeof supabase === 'undefined') {
-            alert('Supabase 库加载失败，请检查网络或更换 CDN 源');
-        }
-    }
-</script>
-<script src="app.js"></script>
+    // --- 脚本开始 ---
+    let client;
+    let selectedTags = [];
 
+    // 初始化 Supabase
+    function initSupabase() {
+        if (typeof supabase === 'undefined') {
+            console.error("库还没加载好，等待中...");
+            setTimeout(initSupabase, 500);
+            return;
+        }
+        const SUPABASE_URL = 'https://jbyljemznjnqrixyohms.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_DI6RRfMXVspDzfnAkV61og_qpmnjmYg';
+        client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        loadCount();
+    }
+
+    // 加载人数
+    async function loadCount() {
+        const { count, error } = await client.from('users').select('*', { count: 'exact', head: true });
+        if (!error) document.getElementById('totalCount').innerText = (count || 0) + 548;
+    }
+
+    // 标签点击
+    document.querySelectorAll('.tag-item').forEach(item => {
+        item.onclick = () => {
+            item.classList.toggle('active');
+            const tag = item.innerText;
+            if (selectedTags.includes(tag)) {
+                selectedTags = selectedTags.filter(t => t !== tag);
+            } else {
+                selectedTags.push(tag);
+            }
+        };
+    });
+
+    // 提交
+    async function submitCard() {
+        const data = {
+            nickname: document.getElementById('nickname').value.trim(),
+            gender: document.getElementById('gender').value,
+            age: document.getElementById('age').value,
+            city: document.getElementById('city').value,
+            mbti: document.getElementById('mbti').value,
+            tags: selectedTags.join(','),
+            contact: document.getElementById('contact').value.trim()
+        };
+        if (!data.nickname || !data.contact || !data.mbti) return alert('请填好昵称、MBTI和微信号！');
+        
+        const { error } = await client.from('users').insert([data]);
+        if (error && error.code === '23505') {
+            alert('🎉 你已经在信号池里啦！可以直接去捕捉。');
+        } else if (error) {
+            alert('错误：' + error.message);
+        } else {
+            alert('✅ 发射成功！');
+            loadCount();
+        }
+        localStorage.setItem('hasRegistered', 'true');
+        localStorage.setItem('myContact', data.contact);
+    }
+
+    // 抽取
+    async function drawCard(targetGender) {
+        if (!localStorage.getItem('hasRegistered')) {
+            alert('🔒 请先发射你的信号！');
+            return window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        const { data: users, error } = await client.from('users').select('*').eq('gender', targetGender).neq('contact', localStorage.getItem('myContact'));
+        if (error || !users?.length) return alert('暂无同频信号');
+
+        const lucky = users[Math.floor(Math.random() * users.length)];
+        document.getElementById('resNick').innerText = lucky.nickname;
+        document.getElementById('resMbti').innerText = lucky.mbti;
+        document.getElementById('resInfo').innerText = `${lucky.age}岁 | ${lucky.city}`;
+        document.getElementById('resContact').innerText = `复制微信号：${lucky.contact}`;
+        document.getElementById('resContact').dataset.content = lucky.contact;
+        document.getElementById('resultArea').style.display = 'block';
+    }
+
+    // 复制
+    function copyContact() {
+        const text = document.getElementById('resContact').dataset.content;
+        const input = document.createElement("textarea");
+        input.value = text;
+        document.body.appendChild(input);
+        input.select();
+        document.execCommand('copy');
+        document.body.removeChild(input);
+        alert('✅ 复制成功，快去加微信吧！');
+    }
+
+    // 页面加载完启动
+    window.onload = initSupabase;
+</script>
 </body>
 </html>
