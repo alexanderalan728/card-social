@@ -1,6 +1,6 @@
 // ⚠️ 记得把下面两行换成您自己的！(注意有引号)
-const SUPABASE_URL = 'https://您的项目地址.supabase.co';
-const SUPABASE_ANON_KEY = '您的密钥字符串';
+const SUPABASE_URL = 'https://jbyljemznjnqrixyohms.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_DI6RRfMXVspDzfnAkV61og_qpmnjmYg';
 
 const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
