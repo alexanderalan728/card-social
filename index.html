@@ -3,121 +3,150 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Signal Lab - 遇见同频</title>
+    <title>Signal Lab</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        /* --- 核心风格：Apple Vision 液态玻璃 --- */
         :root {
-            /* 动态渐变背景 */
-            --bg-color: #f2f2f7;
-            --glass-bg: rgba(255, 255, 255, 0.65);
-            --glass-border: rgba(255, 255, 255, 0.8);
-            --glass-blur: blur(25px);
-            --shadow-soft: 0 10px 40px -10px rgba(0,0,0,0.08);
+            --glass-bg: rgba(255, 255, 255, 0.25);
+            --glass-border: rgba(255, 255, 255, 0.4);
+            --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+            --backdrop-blur: blur(20px);
+            --primary-color: #007AFF; /* iOS Blue */
             --text-main: #1d1d1f;
-            --text-sub: #86868b;
-            --accent-blue: #007aff;
-            --accent-pink: #ff2d55;
         }
 
         body {
             margin: 0;
             padding: 0;
-            background: #fbfbfd;
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif;
             color: var(--text-main);
             min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
             overflow-x: hidden;
-            position: relative;
+            background-color: #e0d4fc; /* 底色 */
         }
 
-        /* --- 动态液态背景 (Liquid Background) --- */
-        .liquid-bg {
+        /* --- 🟣 核心：复刻 iOS 18 液态壁纸背景 --- */
+        .ambient-light {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
             z-index: -1;
             overflow: hidden;
-            background: white;
         }
-        .blob {
+        .orb {
             position: absolute;
             border-radius: 50%;
-            filter: blur(60px);
-            opacity: 0.6;
-            animation: float 10s infinite ease-in-out alternate;
+            filter: blur(80px);
+            opacity: 0.8;
+            animation: float-liquid 10s infinite ease-in-out alternate;
         }
-        .blob-1 { top: -10%; left: -10%; width: 50vw; height: 50vw; background: #d0e8ff; animation-delay: 0s; }
-        .blob-2 { bottom: -10%; right: -10%; width: 60vw; height: 60vw; background: #fde2e4; animation-delay: -5s; }
-        .blob-3 { top: 40%; left: 40%; width: 40vw; height: 40vw; background: #e0d4fc; animation-delay: -2s; opacity: 0.4; }
-
-        @keyframes float {
-            0% { transform: translate(0, 0) scale(1); }
-            100% { transform: translate(20px, 30px) scale(1.1); }
+        /* 紫色深邃块 */
+        .orb-1 {
+            top: -10%; left: 50%; width: 120vw; height: 120vw;
+            background: radial-gradient(circle, #7F5AF0 0%, #6246ea 100%);
+            transform: translateX(-50%);
+            animation-duration: 15s;
+        }
+        /* 粉色柔和块 */
+        .orb-2 {
+            bottom: -20%; left: -20%; width: 100vw; height: 100vw;
+            background: #ffcbf2;
+            opacity: 0.9;
+            animation-delay: -2s;
+        }
+        /* 米色高光块 */
+        .orb-3 {
+            top: 40%; right: -20%; width: 80vw; height: 80vw;
+            background: #fdfcdc;
+            opacity: 0.7;
+            animation-delay: -5s;
         }
 
-        /* --- 玻璃卡片 --- */
+        @keyframes float-liquid {
+            0% { transform: translate(0, 0) scale(1) rotate(0deg); }
+            100% { transform: translate(20px, 40px) scale(1.05) rotate(5deg); }
+        }
+
+        /* --- 布局容器 --- */
+        .container {
+            width: 88%;
+            max-width: 390px;
+            padding-bottom: 40px;
+            z-index: 10;
+            margin-top: 60px; /* 留出顶部大标题空间 */
+        }
+
+        /* --- 顶部大标题 (仿锁屏时间风格) --- */
+        .header-large {
+            width: 100%;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .header-large h1 {
+            font-size: 42px;
+            font-weight: 200; /* 极细字体 */
+            color: rgba(255, 255, 255, 0.9);
+            margin: 0;
+            letter-spacing: -1px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header-large p {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.7);
+            margin-top: 5px;
+            font-weight: 500;
+        }
+
+        /* --- iOS 玻璃卡片 --- */
         .card {
             background: var(--glass-bg);
-            backdrop-filter: var(--glass-blur);
-            -webkit-backdrop-filter: var(--glass-blur);
+            backdrop-filter: var(--backdrop-blur);
+            -webkit-backdrop-filter: var(--backdrop-blur);
             border: 1px solid var(--glass-border);
-            border-radius: 24px;
+            box-shadow: var(--glass-shadow);
+            border-radius: 28px; /* 更圆的角 */
             padding: 24px;
-            margin-bottom: 24px;
-            box-shadow: var(--shadow-soft);
-            transition: transform 0.2s;
+            margin-bottom: 20px;
+            transition: transform 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
         }
-        .card:active { transform: scale(0.995); }
+        .card:active { transform: scale(0.98); }
 
-        .container { width: 88%; max-width: 400px; padding-bottom: 40px; z-index: 10; }
-
-        /* --- 标题栏 --- */
-        .navbar { width: 100%; padding: 25px 0 10px; text-align: center; }
-        .navbar h1 { 
-            font-size: 24px; font-weight: 800; letter-spacing: -0.5px;
-            background: linear-gradient(135deg, #1d1d1f 0%, #434344 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin: 0 0 5px 0;
-        }
-        .count-text { font-size: 13px; color: var(--text-sub); font-weight: 500; }
-        .count-num { color: var(--accent-blue); }
-
-        /* --- 标题 --- */
         .card-header {
-            font-size: 17px; font-weight: 700; margin-bottom: 18px;
-            display: flex; align-items: center; gap: 8px; color: #1d1d1f;
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #1d1d1f;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
-        /* --- 输入框 (iOS 风格) --- */
-        .form-group { margin-bottom: 14px; }
-        .form-row { display: flex; gap: 12px; }
+        /* --- iOS 风格输入框 --- */
+        .form-group { margin-bottom: 12px; }
+        .form-row { display: flex; gap: 10px; }
         .form-row .form-group { flex: 1; }
 
         .form-input, .form-select {
             width: 100%;
             padding: 16px;
-            background: rgba(255, 255, 255, 0.5);
-            border: 1px solid rgba(0, 0, 0, 0.05);
-            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.5); /* 半透白 */
+            border: none;
+            border-radius: 16px;
             font-size: 16px;
-            color: #1d1d1f;
+            color: #000;
             box-sizing: border-box;
             outline: none;
             transition: all 0.2s;
-            font-weight: 500;
         }
+        .form-input::placeholder { color: rgba(0,0,0,0.4); }
         .form-input:focus {
-            background: #fff;
-            border-color: var(--accent-blue);
-            box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.1);
+            background: rgba(255, 255, 255, 0.9);
+            box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.3);
         }
-        .form-input::placeholder { color: #aaa; font-weight: 400; }
 
-        /* --- 按钮 (果冻质感) --- */
+        /* --- iOS 风格按钮 --- */
         .btn {
             width: 100%;
             padding: 16px;
@@ -125,88 +154,86 @@
             border-radius: 16px;
             font-size: 17px;
             font-weight: 600;
-            color: white;
             cursor: pointer;
             transition: all 0.2s;
-            letter-spacing: -0.3px;
         }
-        .btn:active { transform: scale(0.96); opacity: 0.9; }
-
+        
         .btn-submit {
-            background: #1d1d1f;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            background: #000000; /* 纯黑按钮，高级感 */
+            color: white;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }
-        
+        .btn-submit:active { opacity: 0.8; transform: scale(0.98); }
+
         .btn-draw-male {
-            background: var(--accent-blue);
+            background: #007AFF; /* iOS Blue */
+            color: white;
             margin-bottom: 12px;
-            box-shadow: 0 4px 12px rgba(0, 122, 255, 0.25);
         }
-        
         .btn-draw-female {
-            background: var(--accent-pink);
-            box-shadow: 0 4px 12px rgba(255, 45, 85, 0.25);
+            background: #FF2D55; /* iOS Pink */
+            color: white;
         }
 
-        /* --- 结果弹窗 --- */
+        /* --- 弹窗结果 --- */
         .result-box {
             display: none;
-            background: rgba(255, 255, 255, 0.8);
-            border-radius: 18px;
+            background: rgba(255,255,255,0.85);
+            border-radius: 20px;
             padding: 24px;
             text-align: center;
             margin-top: 20px;
-            animation: popUp 0.4s cubic-bezier(0.19, 1, 0.22, 1);
-            box-shadow: 0 20px 40px -10px rgba(0,0,0,0.1);
+            animation: springUp 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
         }
-        .res-avatar { font-size: 56px; margin-bottom: 12px; display: block; }
-        .res-name { font-size: 22px; font-weight: 700; color: #1d1d1f; margin-bottom: 4px; }
+        .res-avatar { font-size: 50px; margin-bottom: 10px; display: block; }
+        .res-name { font-size: 22px; font-weight: 700; color: #000; margin-bottom: 4px; }
         .res-details {
-            font-size: 13px; color: #86868b;
+            font-size: 13px; color: #666;
             background: #f2f2f7; padding: 4px 12px;
             border-radius: 100px; display: inline-block; margin-bottom: 16px;
         }
         .res-contact {
             background: #fff;
-            color: var(--accent-blue);
+            color: #007AFF;
             padding: 14px;
             border-radius: 14px;
             font-weight: 600;
-            font-size: 16px;
+            font-size: 18px;
+            border: 1px solid rgba(0,0,0,0.05);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
             cursor: pointer;
-            border: 1px solid rgba(0, 122, 255, 0.1);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
         }
-        .res-contact:active { background: #f5f5f7; }
         
-        .tips { font-size: 12px; color: #aaa; margin-top: 12px; }
-        .footer { text-align: center; font-size: 12px; color: #ccc; padding: 20px 0; margin-top: auto; }
+        .footer { text-align: center; font-size: 12px; color: rgba(255,255,255,0.6); padding: 20px 0; margin-top: auto; }
 
-        @keyframes popUp { from { opacity: 0; transform: scale(0.9) translateY(10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+        @keyframes springUp { 
+            from { opacity: 0; transform: translateY(20px) scale(0.9); } 
+            to { opacity: 1; transform: translateY(0) scale(1); } 
+        }
     </style>
 </head>
 <body>
-    <!-- 液态流体背景 -->
-    <div class="liquid-bg">
-        <div class="blob blob-1"></div>
-        <div class="blob blob-2"></div>
-        <div class="blob blob-3"></div>
+    <!-- 🟣 液态流光背景 -->
+    <div class="ambient-light">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
     </div>
 
-    <div class="navbar">
+    <!-- 顶部大标题 (仿锁屏时间) -->
+    <div class="header-large">
         <h1>Signal Lab</h1>
-        <p class="count-text">已连接 <span id="totalCount" class="count-num">...</span> 个信号源</p>
+        <p>已连接 <span id="totalCount" style="font-weight:bold; color:#fff;">...</span> 个同频信号</p>
     </div>
 
     <div class="container">
-        <!-- 模块一：发射 -->
+        <!-- 模块一 -->
         <div class="card">
             <div class="card-header">📡 发射信号</div>
             
-            <div class="form-group">
-                <input type="text" id="nickname" class="form-input" placeholder="代号 / 昵称">
-            </div>
-
+            <div class="form-group"><input type="text" id="nickname" class="form-input" placeholder="代号 / 昵称"></div>
+            
             <div class="form-row">
                 <div class="form-group" style="flex: 1.5;">
                     <select id="gender" class="form-select">
@@ -214,26 +241,19 @@
                         <option value="女">我是女生 👧</option>
                     </select>
                 </div>
-                <div class="form-group">
-                    <input type="number" id="age" class="form-input" placeholder="年龄">
-                </div>
+                <div class="form-group"><input type="number" id="age" class="form-input" placeholder="年龄"></div>
             </div>
 
-            <div class="form-group">
-                <input type="text" id="city" class="form-input" placeholder="坐标 (如: 北京)">
-            </div>
-
-            <div class="form-group">
-                <input type="text" id="contact" class="form-input" placeholder="微信号 (仅匹配成功可见)">
-            </div>
+            <div class="form-group"><input type="text" id="city" class="form-input" placeholder="坐标 (如: 北京)"></div>
+            <div class="form-group"><input type="text" id="contact" class="form-input" placeholder="微信号 (仅匹配可见)"></div>
 
             <button class="btn btn-submit" onclick="submitCard()">发射信号</button>
         </div>
 
-        <!-- 模块二：捕捉 -->
+        <!-- 模块二 -->
         <div class="card">
             <div class="card-header">🔍 捕捉信号</div>
-            <p style="font-size: 14px; color: #86868b; margin-bottom: 20px;">点击按钮，随机接入一个同频信号</p>
+            <p style="font-size: 14px; color: #666; margin-bottom: 20px;">点击下方按钮，随机接入一个同频信号</p>
 
             <button class="btn btn-draw-male" onclick="drawCard('男')">捕捉男生 👦</button>
             <button class="btn btn-draw-female" onclick="drawCard('女')">捕捉女生 👧</button>
@@ -244,7 +264,7 @@
                 <div class="res-name" id="resNick">未知用户</div>
                 <div class="res-details" id="resInfo">--岁 | --</div>
                 <div class="res-contact" id="resContact" onclick="copyContact()">微信号：xxx</div>
-                <div class="tips">👆 点击即可复制</div>
+                <p style="font-size: 12px; color: #aaa; margin-top: 10px;">👆 点击即可复制</p>
             </div>
         </div>
 
