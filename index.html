@@ -36,7 +36,7 @@
         /* 结果区域 */
         .result-box { display: none; text-align: center; margin-top: 25px; padding: 30px; border-radius: 28px; background: rgba(255,255,255,0.12); border: 2px dashed rgba(255,255,255,0.2); animation: pop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         .res-mbti { background: #00f2fe; color: #000; padding: 3px 10px; border-radius: 8px; font-size: 13px; font-weight: bold; margin-left: 10px; }
-        .res-contact { margin-top: 20px; padding: 18px; background: #fff; color: #1a1a2e; border-radius: 15px; font-weight: 900; cursor: pointer; font-size: 18px; }
+        .res-contact { margin-top: 20px; padding: 18px; background: #fff; color: #1a1a2e; border-radius: 15px; font-weight: 900; cursor: pointer; font-size: 18px; word-break: break-all; }
         
         @keyframes pop { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
     </style>
@@ -101,15 +101,14 @@
 </div>
 
 <script>
-    // --- 核心配置 ---
+    // --- 核心配置 (已填入你的真实 Key) ---
     const SUPABASE_URL = 'https://jbyljemznjnqrixyohms.supabase.co';
-    // ⬇️ 请在此处粘贴你图片里那个以 eyJ 开头的长 Key ⬇️
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpieWxqZW16bmpucXJpeHlvaG1zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU5ODcwNzksImV4cCI6MjA4MTU2MzA3OX0.Nyuc_K0tuqGM6uSm9TvCK2fDQuTq7ZzVBI4fJ7GwVUg'; 
 
     let client;
     let selectedTags = [];
 
-    // 初始化连接（带防错逻辑）
+    // 初始化连接
     function init() {
         if (typeof supabase === 'undefined') return setTimeout(init, 500);
         client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -121,7 +120,7 @@
         try {
             const { count, error } = await client.from('users').select('*', { count: 'exact', head: true });
             if (!error) document.getElementById('totalCount').innerText = (count || 0) + 548;
-        } catch (e) { console.warn("Count skip"); }
+        } catch (e) { console.warn("Syncing..."); }
     }
 
     // 标签多选逻辑
@@ -134,7 +133,7 @@
         };
     });
 
-    // --- 发射信号 (已处理 Age 类型转换和卡顿) ---
+    // --- 发射信号 (已处理 Age 类型转换) ---
     async function submitCard() {
         const btn = document.getElementById('submitBtn');
         const rawAge = document.getElementById('age').value;
@@ -142,7 +141,7 @@
         const data = {
             nickname: document.getElementById('nickname').value.trim(),
             gender: document.getElementById('gender').value,
-            age: rawAge ? parseInt(rawAge) : 0, // 核心：转为整数
+            age: rawAge ? parseInt(rawAge) : 0, // 核心：转为整数匹配数据库
             city: document.getElementById('city').value.trim(),
             mbti: document.getElementById('mbti').value,
             tags: selectedTags.join(','),
@@ -152,13 +151,13 @@
         if (!data.nickname || !data.contact || !data.mbti) return alert('代号、MBTI 和微信号都要填哦！');
 
         btn.disabled = true;
-        btn.innerText = '正在上传频率...';
+        btn.innerText = '正在同步频率...';
 
         try {
             const { error } = await client.from('users').insert([data]);
             if (error) {
                 console.error(error);
-                alert("发射失败！错误提示：" + error.message);
+                alert("发射失败！原因：" + error.message);
             } else {
                 alert("✅ 频率同步成功！");
                 localStorage.setItem('hasRegistered', 'true');
@@ -166,7 +165,7 @@
                 loadCount();
             }
         } catch (err) {
-            alert("网络信号异常，请重试");
+            alert("网络异常，请重试");
         } finally {
             btn.disabled = false;
             btn.innerText = '同步频率，进入信号池';
