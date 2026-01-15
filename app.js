@@ -15,7 +15,7 @@ const badWords = ['约炮', '招嫖', '兼职', '刷单', '贷款', '裸聊', 'a
     
     if (!error && count !== null) {
         // 显示真实人数 + 500 (基数，为了好看)
-        document.getElementById('totalCount').innerText = count + 500; 
+        document.getElementById('totalCount').innerText = count + 572; 
     }
 })();
 
