@@ -144,27 +144,76 @@
         }
         .form-input::placeholder { color: rgba(0,0,0,0.4); }
 
-        /* --- 按钮 --- */
+               /* --- 升级版：液态果冻按钮 --- */
         .btn {
             width: 100%;
             padding: 16px;
             border: none;
-            border-radius: 16px;
-            font-size: 16px;
+            border-radius: 20px; /* 更圆润 */
+            font-size: 17px;
             font-weight: 600;
+            color: #1d1d1f; /* 深色文字 */
             cursor: pointer;
-            transition: all 0.2s;
-            letter-spacing: -0.3px;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            position: relative;
+            overflow: hidden;
+            
+            /* 关键：半透明白 + 混合模式 */
+            background: rgba(255, 255, 255, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(10px);
+            box-shadow: 
+                0 4px 15px rgba(0,0,0,0.05),
+                inset 0 1px 0 rgba(255,255,255,0.8), /* 顶部高光 */
+                inset 0 -2px 5px rgba(0,0,0,0.05); /* 底部阴影 */
         }
-        .btn-submit {
-            background: #1d1d1f;
-            color: white;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.15);
-        }
-        .btn-submit:active { transform: scale(0.97); }
 
-        .btn-draw-male { background: #007AFF; color: white; margin-bottom: 10px; }
-        .btn-draw-female { background: #FF2D55; color: white; }
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.6);
+            transform: translateY(-2px);
+            box-shadow: 
+                0 8px 25px rgba(0,0,0,0.1),
+                inset 0 1px 0 rgba(255,255,255,0.9);
+        }
+
+        .btn:active { 
+            transform: scale(0.96) translateY(0); 
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        /* 发射按钮：加一点点极光色，区别于其他按钮 */
+        .btn-submit {
+            color: #fff;
+            background: rgba(29, 29, 31, 0.8); /* 深色半透 */
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .btn-submit:hover {
+            background: rgba(29, 29, 31, 0.95);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+        }
+
+        /* 男生按钮：淡淡的蓝色玻璃 */
+        .btn-draw-male {
+            color: #0051a8;
+            background: rgba(0, 122, 255, 0.15);
+            border: 1px solid rgba(0, 122, 255, 0.2);
+            margin-bottom: 12px;
+        }
+        .btn-draw-male:hover {
+            background: rgba(0, 122, 255, 0.25);
+            box-shadow: 0 8px 20px rgba(0, 122, 255, 0.15);
+        }
+
+        /* 女生按钮：淡淡的粉色玻璃 */
+        .btn-draw-female {
+            color: #a8002a;
+            background: rgba(255, 45, 85, 0.15);
+            border: 1px solid rgba(255, 45, 85, 0.2);
+        }
+        .btn-draw-female:hover {
+            background: rgba(255, 45, 85, 0.25);
+            box-shadow: 0 8px 20px rgba(255, 45, 85, 0.15);
+        }
 
         /* --- 结果弹窗 --- */
         .result-box {
