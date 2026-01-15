@@ -5,12 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Signal Lab</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
+       <style>
         :root {
-            --glass-bg: rgba(255, 255, 255, 0.45);
-            --glass-border: rgba(255, 255, 255, 0.6);
+            /* 关键修改：更通透的玻璃 */
+            --glass-bg: rgba(255, 255, 255, 0.25); 
+            --glass-border: rgba(255, 255, 255, 0.4);
             --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
-            --backdrop-blur: blur(25px);
+            --backdrop-blur: blur(40px); /* 加大模糊，更有高级感 */
             --text-main: #1d1d1f;
         }
 
@@ -27,12 +28,11 @@
             background: #fff;
         }
 
-        /* --- 🌊 核心：Mesh Gradient (液态网格渐变) --- */
+        /* --- 🌊 纯净版液态背景 (去掉了噪点) --- */
         .mesh-bg {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
             z-index: -1;
-            /* 关键：把背景图做得很大，然后移动它 */
             background-image: 
                 radial-gradient(at 0% 0%, hsla(253,16%,7%,0) 0, transparent 50%), 
                 radial-gradient(at 50% 0%, hsla(225,39%,30%,0) 0, transparent 50%), 
@@ -44,25 +44,14 @@
                 radial-gradient(circle at 50% 50%, #e0d4fc, transparent 50%), 
                 radial-gradient(circle at 50% 90%, #fdfcdc, transparent 50%);
             background-size: 200% 200%;
-            filter: blur(60px); /* 极强的模糊，消除所有边缘 */
-            animation: fluid-move 15s ease-in-out infinite alternate;
+            /* 移除了 filter: blur，直接用渐变本身的柔和度，防止性能问题导致的白边 */
+            animation: fluid-move 10s ease-in-out infinite alternate;
         }
 
-        /* 动画：让背景缓缓移动，制造流动感 */
         @keyframes fluid-move {
             0% { background-position: 0% 50%; }
             50% { background-position: 100% 50%; }
             100% { background-position: 0% 50%; }
-        }
-
-        /* 叠加一层噪点，增加高级质感（可选，如果不喜欢可删掉） */
-        .noise-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            z-index: -1;
-            opacity: 0.03;
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-            pointer-events: none;
         }
 
         /* --- 导航栏 --- */
@@ -106,9 +95,9 @@
             z-index: 10;
         }
 
-        /* --- 玻璃卡片 (高透白) --- */
+        /* --- 关键：更通透的卡片 --- */
         .card {
-            background: var(--glass-bg);
+            background: var(--glass-bg); /* 这里变透了 */
             backdrop-filter: var(--backdrop-blur);
             -webkit-backdrop-filter: var(--backdrop-blur);
             border: 1px solid var(--glass-border);
@@ -131,7 +120,7 @@
             opacity: 0.9;
         }
 
-        /* --- 输入框 --- */
+        /* --- 输入框 (增加透明度，显出层次) --- */
         .form-group { margin-bottom: 12px; }
         .form-row { display: flex; gap: 10px; }
         .form-row .form-group { flex: 1; }
@@ -139,8 +128,9 @@
         .form-input, .form-select {
             width: 100%;
             padding: 15px;
-            background: rgba(255, 255, 255, 0.6);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            /* 关键修改：输入框也是半透明的，不是死白 */
+            background: rgba(255, 255, 255, 0.4); 
+            border: 1px solid rgba(255, 255, 255, 0.3);
             border-radius: 16px;
             font-size: 15px;
             color: #000;
@@ -149,7 +139,7 @@
             transition: all 0.2s;
         }
         .form-input:focus {
-            background: #fff;
+            background: rgba(255, 255, 255, 0.8);
             box-shadow: 0 4px 20px rgba(0,0,0,0.05);
         }
         .form-input::placeholder { color: rgba(0,0,0,0.4); }
@@ -167,7 +157,7 @@
             letter-spacing: -0.3px;
         }
         .btn-submit {
-            background: #1d1d1f; /* 黑色 */
+            background: #1d1d1f;
             color: white;
             box-shadow: 0 5px 15px rgba(0,0,0,0.15);
         }
@@ -179,19 +169,20 @@
         /* --- 结果弹窗 --- */
         .result-box {
             display: none;
-            background: rgba(255,255,255,0.9);
+            background: rgba(255,255,255,0.8); /* 弹窗稍微实一点，突出内容 */
             border-radius: 20px;
             padding: 24px;
             text-align: center;
             margin-top: 20px;
             animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
             box-shadow: 0 20px 60px -10px rgba(0,0,0,0.15);
+            backdrop-filter: blur(30px);
         }
         .res-avatar { font-size: 48px; margin-bottom: 8px; display: block; }
         .res-name { font-size: 20px; font-weight: 800; color: #000; margin-bottom: 4px; }
         .res-details {
             font-size: 13px; color: #666;
-            background: #f2f2f7; padding: 4px 12px;
+            background: rgba(0,0,0,0.05); padding: 4px 12px;
             border-radius: 100px; display: inline-block; margin-bottom: 16px;
         }
         .res-contact {
