@@ -1,25 +1,25 @@
-// ⚠️ 记得把下面两行换成您自己的！(注意有引号)
+// ⚠️ 您的 Supabase 配置 (已帮您填好)
 const SUPABASE_URL = 'https://jbyljemznjnqrixyohms.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_DI6RRfMXVspDzfnAkV61og_qpmnjmYg';
 
 const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// 敏感词库
+// 敏感词库 (防封号)
 const badWords = ['约炮', '招嫖', '兼职', '刷单', '贷款', '裸聊', 'av', '加微', '死', '傻逼'];
 
 // --- 页面加载时：自动查询人数 ---
 (async function initCount() {
     const { count, error } = await client
         .from('users')
-        .select('*', { count: 'exact', head: true }); // 只查数量
+        .select('*', { count: 'exact', head: true }); 
     
     if (!error && count !== null) {
-        // 为了看起来人多，可以在真实人数上加个基数（比如 +500），不加就直接显示 count
-        document.getElementById('totalCount').innerText = count + 572; 
+        // 显示真实人数 + 500 (基数，为了好看)
+        document.getElementById('totalCount').innerText = count + 500; 
     }
 })();
 
-// 1. 提交名片功能
+// --- 1. 发射信号 (提交名片) ---
 async function submitCard() {
     const nickname = document.getElementById('nickname').value || '';
     const gender = document.getElementById('gender').value;
@@ -37,7 +37,7 @@ async function submitCard() {
 
     // 校验二：非空
     if (!nickname || !contact || !age || !city) {
-        alert('请把昵称、年龄、城市和联系方式都填完整哦！');
+        alert('请把昵称、年龄、坐标和微信号都填完整哦！');
         return;
     }
 
@@ -49,7 +49,7 @@ async function submitCard() {
 
     const btn = document.querySelector('.btn-submit');
     const originalText = btn.innerText;
-    btn.innerText = '提交中...';
+    btn.innerText = '发射中...';
     btn.disabled = true;
 
     const { data, error } = await client
@@ -61,14 +61,14 @@ async function submitCard() {
 
     if (error) {
         if (error.code === '23505') {
-            alert('🎉 您之前已经放入过名片啦！身份验证成功，快去抽卡吧！');
+            alert('🎉 您之前已经发射过信号啦！无需重复提交，快去捕捉别人吧！');
             localStorage.setItem('hasRegistered', 'true');
             localStorage.setItem('myContact', contact);
         } else {
             alert('提交失败，请重试：' + error.message);
         }
     } else {
-        alert('✅ 放入成功！您现在拥有抽卡资格了！');
+        alert('✅ 信号发射成功！现在您可以去捕捉同频信号了！');
         localStorage.setItem('hasRegistered', 'true');
         localStorage.setItem('myContact', contact);
         
@@ -77,7 +77,7 @@ async function submitCard() {
         const currentCount = parseInt(countSpan.innerText) || 0;
         countSpan.innerText = currentCount + 1;
 
-        // 清空
+        // 清空输入框
         document.getElementById('nickname').value = '';
         document.getElementById('contact').value = '';
         document.getElementById('age').value = '';
@@ -85,90 +85,98 @@ async function submitCard() {
     }
 }
 
-// 2. 抽取盲盒功能
+// --- 2. 捕捉信号 (每天限一次 + 摇晃动画) ---
 async function drawCard(targetGender) {
-    const lastDraw = localStorage.getItem('lastDrawTime');
-    const now = Date.now();
+    // 🚨 限制 1：每天只能抽一次
+    const todayStr = new Date().toLocaleDateString(); // 获取今天日期，如 "2025/1/15"
+    const lastDrawDate = localStorage.getItem('lastDrawDate');
     
-    // 30秒冷却
-    if (lastDraw && now - lastDraw < 30000) {
-        alert('⏳ 休息一下，请 30 秒后再抽一次哦～');
+    if (lastDrawDate === todayStr) {
+        alert('⏳ 贪多嚼不烂哦～\n\n每天只能捕捉 1 个信号。\n请明天再来试试缘分吧！');
         return;
     }
-    
-    // 必须注册
+
+    // 🚨 限制 2：必须先注册
     const hasRegistered = localStorage.getItem('hasRegistered');
     if (!hasRegistered) {
-        alert('🔒 为了公平起见，请先在上方“放入名片”加入卡池，才能抽取别人哦！');
+        alert('🔒 为了公平起见，请先在上方“发射信号”加入卡池，才能捕捉别人哦！');
         window.scrollTo({ top: 0, behavior: 'smooth' });
         return;
     }
 
+    // --- 🎬 动画开始 ---
     const resBox = document.getElementById('resultArea');
+    const animBox = document.getElementById('blindBoxAnim');
+    const mysteryBox = document.getElementById('mysteryBox');
+    
+    // 隐藏旧结果，显示盲盒
     resBox.style.display = 'none';
+    animBox.style.display = 'block';
+    mysteryBox.className = 'mystery-box shake-anim'; // 开始摇晃
 
-    // 按钮开箱动画
+    // 按钮状态
     const btn = targetGender === '男' ? document.querySelector('.btn-draw-male') : document.querySelector('.btn-draw-female');
     const originalText = btn.innerText;
-    btn.innerText = '正在寻找缘分...';
+    btn.innerText = '正在锁定信号...';
     btn.disabled = true;
 
-    await new Promise(r => setTimeout(r, 800)); // 延迟0.8秒
+    // 强制摇晃 1.5秒 (增加紧张感)
+    await new Promise(r => setTimeout(r, 1500));
 
+    // 获取数据
     const myContact = localStorage.getItem('myContact');
-
-    // 排除自己
     const { data: users, error } = await client
         .from('users')
         .select('*')
         .eq('gender', targetGender)
-        .neq('contact', myContact || '');
+        .neq('contact', myContact || ''); // 不抽自己
 
+    // 恢复按钮
     btn.innerText = originalText;
     btn.disabled = false;
 
     if (error) {
-        alert('网络有点卡，请重试');
+        alert('信号干扰，请重试');
+        animBox.style.display = 'none';
         return;
     }
 
     if (!users || users.length === 0) {
-        alert(`还没有 ${targetGender} 生放入名片哦，快去邀请朋友来玩！`);
+        alert(`📡 暂无同频信号，请稍后再试！`);
+        animBox.style.display = 'none';
         return;
     }
 
-    // 防重复抽取逻辑
-    const drawnKey = `drawn_${targetGender}`;
-    let drawnData = JSON.parse(localStorage.getItem(drawnKey)) || { ids: [], time: Date.now() };
-
-    // 超过24小时重置
-    if (Date.now() - drawnData.time > 24 * 60 * 60 * 1000) {
-        drawnData.ids = [];
-        drawnData.time = Date.now();
-    }
-
-    // 过滤已抽
-    const availableUsers = users.filter(u => !drawnData.ids.includes(u.id));
+    // --- 筛选逻辑：排除已经抽过的人 ---
+    let historyIds = JSON.parse(localStorage.getItem('historyIds')) || [];
+    const availableUsers = users.filter(u => !historyIds.includes(u.id));
 
     if (availableUsers.length === 0) {
-        alert('🎉 这个性别池里的人你都抽过一轮啦，24 小时后再来吧～');
+        alert('🎉 这个频段的信号你都捕捉过一遍啦！\n为了给你新机会，我们将重置记忆，下次可能遇到“老熟人”。');
+        localStorage.removeItem('historyIds'); // 重置历史
+        animBox.style.display = 'none';
         return;
     }
 
-    // 随机抽
+    // 随机抽取
     const luckyUser = availableUsers[Math.floor(Math.random() * availableUsers.length)];
 
-    // 记录
-    drawnData.ids.push(luckyUser.id);
-    localStorage.setItem(drawnKey, JSON.stringify(drawnData));
-    localStorage.setItem('lastDrawTime', now);
+    // 📝 记录：今天抽过了 + 抽过这个人
+    historyIds.push(luckyUser.id);
+    localStorage.setItem('historyIds', JSON.stringify(historyIds));
+    localStorage.setItem('lastDrawDate', todayStr); // 记录今天日期
 
-    // 展示
+    // --- 💥 炸开效果 ---
+    mysteryBox.className = 'mystery-box explode-anim';
+    await new Promise(r => setTimeout(r, 400));
+    animBox.style.display = 'none';
+    mysteryBox.className = 'mystery-box';
+
+    // 渲染结果
     document.getElementById('resNick').innerText = luckyUser.nickname;
     document.getElementById('resContact').innerText = luckyUser.contact;
     document.getElementById('resIcon').innerText = targetGender === '男' ? '👦' : '👧';
     
-    // 兼容老数据
     const userAge = luckyUser.age ? luckyUser.age + '岁' : '未知年龄';
     const userCity = luckyUser.city ? luckyUser.city : '未知城市';
     document.getElementById('resInfo').innerText = `${userAge} | ${userCity}`;
@@ -177,25 +185,24 @@ async function drawCard(targetGender) {
     resBox.scrollIntoView({ behavior: 'smooth' });
 }
 
-// 3. 点击复制功能
+// --- 3. 点击复制 ---
 function copyContact() {
     const contactText = document.getElementById('resContact').innerText;
-    // 尝试新版 API
     if (navigator.clipboard && window.isSecureContext) {
         navigator.clipboard.writeText(contactText).then(() => {
-            alert('✅ 微信号已复制，快去微信添加吧！');
+            alert('✅ 信号源(微信号)已复制！');
         }).catch(() => {
             alert('复制失败，请手动长按复制');
         });
     } else {
-        // 兼容旧版 API
+        // 兼容旧版浏览器
         const textArea = document.createElement("textarea");
         textArea.value = contactText;
         document.body.appendChild(textArea);
         textArea.select();
         try {
             document.execCommand('copy');
-            alert('✅ 微信号已复制，快去微信添加吧！');
+            alert('✅ 信号源(微信号)已复制！');
         } catch (err) {
             alert('复制失败，请手动长按复制');
         }
