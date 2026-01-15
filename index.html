@@ -1,219 +1,236 @@
-// ⚠️ 保持您的 URL 和 KEY 不变
-const SUPABASE_URL = 'https://jbyljemznjnqrixyohms.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_DI6RRfMXVspDzfnAkV61og_qpmnjmYg';
-const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-const badWords = ['约炮', '招嫖', '兼职', '刷单', '贷款', '裸聊', 'av', '加微', '死', '傻逼'];
-
-// --- 页面加载时统计人数 ---
-(async function initCount() {
-    const { count, error } = await client
-        .from('users')
-        .select('*', { count: 'exact', head: true }); 
-
-    if (!error && count !== null) {
-        // 保持您原本的逻辑：真实人数 + 548
-        document.getElementById('totalCount').innerText = count + 548; 
-    }
-})();
-
-// --- 1. 提交名片 ---
-async function submitCard() {
-    const nickname = document.getElementById('nickname').value.trim();
-    const gender = document.getElementById('gender').value;
-    const age = document.getElementById('age').value.trim();
-    const city = document.getElementById('city').value.trim();
-    const contact = document.getElementById('contact').value.trim();
-
-    // 🛡️ 校验一：敏感词
-    for (let word of badWords) {
-        if (nickname.includes(word) || city.includes(word)) {
-            alert('🚫 输入内容包含敏感词，请修改后重试！');
-            return;
-        }
-    }
-
-    // 🛡️ 校验二：非空
-    if (!nickname || !contact || !age || !city) {
-        alert('请把昵称、年龄、城市和联系方式都填完整哦！');
-        return;
-    }
-
-    // 🛡️ 校验三：微信号长度
-    if (contact.length < 6) {
-        alert('❌ 请填写真实的微信号或手机号 (至少6位)！');
-        return;
-    }
-
-    const btn = document.querySelector('.btn-submit');
-    const originalText = btn.innerText;
-    btn.innerText = '提交中...';
-    btn.disabled = true;
-
-    const { data, error } = await client
-        .from('users')
-        .insert([{ nickname, gender, contact, age, city }]);
-
-    btn.innerText = originalText;
-    btn.disabled = false;
-
-    if (error) {
-        // 错误码 23505 代表唯一性冲突（联系方式重复）
-        if (error.code === '23505') {
-            alert('🎉 您之前已经放入过名片啦！身份验证成功，快去抽卡吧！');
-            localStorage.setItem('hasRegistered', 'true');
-            localStorage.setItem('myContact', contact);
-        } else {
-            alert('提交失败，请重试：' + error.message);
-        }
-    } else {
-        alert('✅ 放入成功！您现在拥有抽卡资格了！');
-        localStorage.setItem('hasRegistered', 'true');
-        localStorage.setItem('myContact', contact);
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>信号实验室 - Signal Lab</title>
+    <!-- 引入 Supabase 官方库 (使用国内镜像加速) -->
+    <script src="https://lib.baomitu.com/supabase/2.39.7/supabase-js.js"></script>
+    <style>
+        :root { --primary: #8a2be2; --accent: #ff00ff; --glass: rgba(255, 255, 255, 0.1); }
+        body { margin: 0; padding: 0; background: linear-gradient(135deg, #0f0c29, #302b63, #24243e); font-family: 'PingFang SC', -apple-system, sans-serif; color: #fff; min-height: 100vh; display: flex; flex-direction: column; align-items: center; }
+        .navbar { width: 100%; padding: 20px 0; text-align: center; background: var(--glass); backdrop-filter: blur(10px); position: sticky; top: 0; z-index: 100; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .container { width: 92%; max-width: 450px; margin-top: 20px; padding-bottom: 50px; }
         
-        // 成功后人数+1
-        const countSpan = document.getElementById('totalCount');
-        countSpan.innerText = parseInt(countSpan.innerText) + 1;
+        /* 玻璃拟态卡片 */
+        .card { background: var(--glass); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; padding: 25px; margin-bottom: 25px; box-shadow: 0 8px 32px rgba(0,0,0,0.3); }
+        .card-title { font-size: 18px; font-weight: bold; margin-bottom: 15px; display: flex; align-items: center; }
         
-        // 清空表单
-        document.getElementById('nickname').value = '';
-        document.getElementById('contact').value = '';
-        document.getElementById('age').value = '';
-        document.getElementById('city').value = '';
-    }
-}
+        /* 表单控件 */
+        .form-input, .form-select { width: 100%; padding: 14px; margin-bottom: 15px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; color: #fff; font-size: 15px; outline: none; box-sizing: border-box; transition: 0.3s; }
+        .form-input:focus { border-color: var(--accent); background: rgba(255,255,255,0.1); }
+        
+        /* 标签选择器 */
+        .tag-container { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 15px; }
+        .tag-item { padding: 6px 14px; border-radius: 20px; font-size: 12px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); cursor: pointer; transition: 0.3s; }
+        .tag-item.active { background: var(--primary); border-color: var(--accent); box-shadow: 0 0 10px var(--primary); }
 
-// --- 2. 抽取盲盒 ---
-async function drawCard(targetGender) {
-    // 🚨 检查是否注册 (必须先放名片)
-    const hasRegistered = localStorage.getItem('hasRegistered');
-    if (!hasRegistered) {
-        alert('🔒 为了公平起见，请先在上方“放入名片”加入卡池，才能抽取别人哦！');
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-        return;
-    }
+        /* 按钮 */
+        .btn { width: 100%; padding: 16px; border: none; border-radius: 15px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.3s; color: #fff; margin-bottom: 10px; }
+        .btn-submit { background: linear-gradient(90deg, #8a2be2, #ff00ff); }
+        .btn-draw-male { background: #4facfe; }
+        .btn-draw-female { background: #fa709a; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-    // 🚨 检查频率 (一天一次)
-    const todayStr = new Date().toLocaleDateString(); // 例如 "2024/12/26"
-    const lastDrawDate = localStorage.getItem('lastDrawDate');
+        /* 结果区域 */
+        .result-box { display: none; text-align: center; margin-top: 20px; padding: 25px; border-radius: 24px; background: rgba(255,255,255,0.15); border: 2px dashed rgba(255,255,255,0.3); animation: pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .res-mbti { background: var(--accent); color: white; padding: 2px 8px; border-radius: 6px; font-size: 12px; margin-left: 8px; }
+        .res-contact { margin-top: 15px; padding: 15px; background: #fff; color: #302b63; border-radius: 12px; font-weight: bold; cursor: pointer; word-break: break-all; }
+        
+        @keyframes pop { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    </style>
+</head>
+<body>
 
-    if (lastDrawDate === todayStr) {
-        alert('⏳ 贪多嚼不烂哦～\n\n每天只能抽取 1 次盲盒。\n请明天再来试试缘分吧！');
-        return;
-    }
+<div class="navbar">
+    <h1>📡 信号实验室</h1>
+    <p style="font-size:12px; opacity:0.8; margin-top:5px;">已捕获 <span id="totalCount" style="color:#00f2fe; font-weight:bold;">...</span> 个同频信号</p>
+</div>
 
-    const resBox = document.getElementById('resultArea');
-    resBox.style.display = 'none';
+<div class="container">
+    <!-- 1. 发射信号卡片 -->
+    <div class="card">
+        <div class="card-title">🛸 发射你的信号</div>
+        <input type="text" id="nickname" class="form-input" placeholder="怎么称呼你？">
+        <div style="display: flex; gap: 10px;">
+            <select id="gender" class="form-select" style="flex:1"><option value="男">男生 👦</option><option value="女">女生 👧</option></select>
+            <input type="number" id="age" class="form-input" style="flex:1" placeholder="年龄">
+        </div>
+        <input type="text" id="city" class="form-input" placeholder="所在城市">
+        <select id="mbti" class="form-select">
+            <option value="">选择你的 MBTI</option>
+            <option value="INFP">INFP 调停者</option><option value="ENFP">ENFP 竞选者</option>
+            <option value="INFJ">INFJ 提倡者</option><option value="ENFJ">ENFJ 主人公</option>
+            <option value="INTJ">INTJ 建筑师</option><option value="ENTJ">ENTJ 指挥官</option>
+            <option value="INTP">INTP 逻辑学家</option><option value="ENTP">ENTP 辩论家</option>
+            <option value="ISFP">ISFP 艺术家</option><option value="ESFP">ESFP 表演者</option>
+            <option value="ISTP">ISTP 鉴赏家</option><option value="ESTP">ESTP 企业家</option>
+            <option value="ISFJ">ISFJ 守卫者</option><option value="ESFJ">ESFJ 执政官</option>
+            <option value="ISTJ">ISTJ 物流师</option><option value="ESTJ">ESTJ 总管</option>
+        </select>
+        <div class="tag-container" id="tagPicker">
+            <div class="tag-item">社牛</div><div class="tag-item">社恐</div>
+            <div class="tag-item">纯爱战神</div><div class="tag-item">熬夜冠军</div>
+            <div class="tag-item">游戏大佬</div><div class="tag-item">搞笑女/男</div>
+        </div>
+        <input type="text" id="contact" class="form-input" placeholder="微信号 (非常重要)">
+        <button class="btn btn-submit" id="submitBtn" onclick="submitCard()">发射信号，坐等缘分</button>
+    </div>
 
-    const btn = targetGender === '男' ? document.querySelector('.btn-draw-male') : document.querySelector('.btn-draw-female');
-    const originalText = btn.innerText;
-    btn.innerText = '正在寻找缘分...';
-    btn.disabled = true;
+    <!-- 2. 捕捉信号卡片 -->
+    <div class="card">
+        <div class="card-title">🔍 捕捉同频信号</div>
+        <button class="btn btn-draw-male" onclick="drawCard('男')">捕捉男生信号 👦</button>
+        <button class="btn btn-draw-female" onclick="drawCard('女')">捕捉女生信号 👧</button>
+        
+        <div id="resultArea" class="result-box">
+            <div style="font-size: 50px;">✨</div>
+            <div style="font-size: 20px; font-weight: bold; margin: 10px 0;">
+                <span id="resNick">代号</span><span id="resMbti" class="res-mbti">MBTI</span>
+            </div>
+            <div id="resInfo" style="font-size: 14px; opacity: 0.8; margin-bottom: 12px;">--岁 | --</div>
+            <div id="resTags" class="tag-container" style="justify-content: center;"></div>
+            <div class="res-contact" id="resContact" onclick="copyContact()">点击复制微信号</div>
+            <p style="font-size:11px; opacity:0.6; margin-top:10px;">温馨提示：对方也在等你发射信号哦</p>
+        </div>
+    </div>
+</div>
 
-    // 模拟等待感
-    await new Promise(r => setTimeout(r, 800));
+<script>
+    // --- 核心配置区 ---
+    const SUPABASE_URL = 'https://jbyljemznjnqrixyohms.supabase.co';
+    // ⬇️ 这里填入你刚才 Copy 的那个以 eyJ 开头的极长 Key
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpieWxqZW16bmpucXJpeHlvaG1zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU5ODcwNzksImV4cCI6MjA4MTU2MzA3OX0.Nyuc_K0tuqGM6uSm9TvCK2fDQuTq7ZzVBI4fJ7GwVUg'; 
 
-    const myContact = localStorage.getItem('myContact');
+    let client;
+    let selectedTags = [];
 
-    // 查询数据
-    const { data: users, error } = await client
-        .from('users')
-        .select('*')
-        .eq('gender', targetGender)
-        .neq('contact', myContact || ''); // 不抽自己
-
-    btn.innerText = originalText;
-    btn.disabled = false;
-
-    if (error) {
-        alert('网络有点卡，请重试');
-        return;
-    }
-
-    if (!users || users.length === 0) {
-        alert(`还没有 ${targetGender} 生放入名片哦，快去邀请朋友来玩！`);
-        return;
-    }
-
-    // 排除已经抽过的 (本地缓存历史)
-    let historyIds = JSON.parse(localStorage.getItem('historyIds')) || [];
-    const availableUsers = users.filter(u => !historyIds.includes(u.id));
-
-    if (availableUsers.length === 0) {
-        alert('🎉 这个性别池里的人你都抽过一轮啦！\n为了给你新机会，我们将重置记忆，下次可能抽到之前见过的人。');
-        localStorage.removeItem('historyIds');
-        return;
-    }
-
-    // 随机抽取
-    const luckyUser = availableUsers[Math.floor(Math.random() * availableUsers.length)];
-
-    // 记录：今天抽过了 + 抽过这个人
-    historyIds.push(luckyUser.id);
-    localStorage.setItem('historyIds', JSON.stringify(historyIds));
-    localStorage.setItem('lastDrawDate', todayStr);
-
-    // 渲染结果
-    document.getElementById('resNick').innerText = luckyUser.nickname;
-    
-    // 存微信号到 data-content 属性，并显示
-    document.getElementById('resContact').innerText = `微信号：${luckyUser.contact}`;
-    document.getElementById('resContact').dataset.content = luckyUser.contact;
-
-    document.getElementById('resIcon').innerText = targetGender === '男' ? '👦' : '👧';
-    
-    const userAge = luckyUser.age ? luckyUser.age + '岁' : '未知年龄';
-    const userCity = luckyUser.city ? luckyUser.city : '未知城市';
-    document.getElementById('resInfo').innerText = `${userAge} | ${userCity}`;
-    
-    resBox.style.display = 'block';
-    resBox.scrollIntoView({ behavior: 'smooth' });
-}
-
-// --- 3. 复制功能 (微信兼容版) ---
-function copyContact() {
-    // 从 dataset 中读取纯微信号
-    const contactText = document.getElementById('resContact').dataset.content;
-    
-    if (!contactText) return;
-
-    // 优先尝试标准API
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(contactText).then(() => {
-            alert('✅ 微信号已复制，快去微信添加吧！');
-        }).catch(err => {
-            fallbackCopy(contactText); // 失败则降级处理
-        });
-    } else {
-        fallbackCopy(contactText); // 不支持则直接降级
-    }
-}
-
-// 降级复制方案 (通过创建隐藏输入框选中文本)
-function fallbackCopy(text) {
-    const textArea = document.createElement("textarea");
-    textArea.value = text;
-    
-    // 避免手机键盘弹出
-    textArea.style.top = "0";
-    textArea.style.left = "0";
-    textArea.style.position = "fixed";
-    textArea.style.opacity = "0";
-    
-    document.body.appendChild(textArea);
-    textArea.focus();
-    textArea.select();
-    
-    try {
-        const successful = document.execCommand('copy');
-        if (successful) {
-            alert('✅ 微信号已复制！');
-        } else {
-            alert('❌ 复制失败，请长按微信号手动复制');
+    // 初始化连接
+    function init() {
+        if (typeof supabase === 'undefined') {
+            return setTimeout(init, 500);
         }
-    } catch (err) {
-        alert('❌ 您的浏览器不支持自动复制，请手动长按');
+        client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        loadCount();
     }
-    
-    document.body.removeChild(textArea);
-}
+
+    // 统计人数
+    async function loadCount() {
+        try {
+            const { count, error } = await client.from('users').select('*', { count: 'exact', head: true });
+            if (!error) document.getElementById('totalCount').innerText = (count || 0) + 548;
+        } catch (e) { console.error("加载人数失败"); }
+    }
+
+    // 标签多选逻辑
+    document.querySelectorAll('.tag-item').forEach(item => {
+        item.onclick = () => {
+            item.classList.toggle('active');
+            const tag = item.innerText;
+            if (selectedTags.includes(tag)) selectedTags = selectedTags.filter(t => t !== tag);
+            else selectedTags.push(tag);
+        };
+    });
+
+    // --- 提交函数 (已修复卡顿和类型问题) ---
+    async function submitCard() {
+        const btn = document.getElementById('submitBtn');
+        const rawAge = document.getElementById('age').value;
+        
+        const data = {
+            nickname: document.getElementById('nickname').value.trim(),
+            gender: document.getElementById('gender').value,
+            age: rawAge ? parseInt(rawAge) : 0, // 强制转为整数，匹配数据库 int8
+            city: document.getElementById('city').value.trim(),
+            mbti: document.getElementById('mbti').value,
+            tags: selectedTags.join(','),
+            contact: document.getElementById('contact').value.trim()
+        };
+
+        if (!data.nickname || !data.contact || !data.mbti) {
+            return alert('请填好代号、MBTI 和微信号哦！');
+        }
+
+        btn.disabled = true;
+        btn.innerText = '正在发射信号...';
+
+        try {
+            const { error } = await client.from('users').insert([data]);
+            if (error) {
+                console.error("提交失败:", error);
+                if (error.code === '42501') {
+                    alert("🚫 权限不足！请在 Supabase 后台开启 RLS Policy (允许所有人 Insert)。");
+                } else {
+                    alert("发射失败：" + error.message);
+                }
+            } else {
+                alert("✅ 信号已成功发射至星空！");
+                localStorage.setItem('hasRegistered', 'true');
+                localStorage.setItem('myContact', data.contact);
+                loadCount();
+            }
+        } catch (err) {
+            alert("网络连接超时或系统异常");
+        } finally {
+            btn.disabled = false;
+            btn.innerText = '发射信号，坐等缘分';
+        }
+    }
+
+    // --- 捕捉函数 ---
+    async function drawCard(targetGender) {
+        if (!localStorage.getItem('hasRegistered')) {
+            alert("🔒 为了公平起见，请先在上方“发射信号”后才能捕捉别人哦！");
+            return window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        const myContact = localStorage.getItem('myContact');
+        
+        try {
+            const { data, error } = await client.from('users').select('*').eq('gender', targetGender).neq('contact', myContact);
+            if (error || !data?.length) return alert("当前频道暂无更多信号，换个性别试试？");
+
+            // 随机选一个
+            const lucky = data[Math.floor(Math.random() * data.length)];
+            
+            // 渲染结果
+            document.getElementById('resNick').innerText = lucky.nickname;
+            document.getElementById('resMbti').innerText = lucky.mbti || '??';
+            document.getElementById('resInfo').innerText = `${lucky.age}岁 | ${lucky.city}`;
+            document.getElementById('resContact').innerText = `复制微信号：${lucky.contact}`;
+            document.getElementById('resContact').dataset.content = lucky.contact;
+            
+            // 渲染标签
+            const tagArea = document.getElementById('resTags');
+            tagArea.innerHTML = '';
+            if(lucky.tags) lucky.tags.split(',').forEach(t => {
+                const s = document.createElement('span'); 
+                s.className = 'tag-item active'; 
+                s.innerText = t; 
+                s.style.fontSize = '10px';
+                tagArea.appendChild(s);
+            });
+
+            document.getElementById('resultArea').style.display = 'block';
+            document.getElementById('resultArea').scrollIntoView({ behavior: 'smooth' });
+        } catch (err) {
+            alert("信号捕捉中断，请检查网络");
+        }
+    }
+
+    // 复制功能
+    function copyContact() {
+        const text = document.getElementById('resContact').dataset.content;
+        const input = document.createElement("textarea");
+        input.value = text;
+        document.body.appendChild(input);
+        input.select();
+        document.execCommand('copy');
+        document.body.removeChild(input);
+        alert('✅ 信号已锁定，微信号复制成功！');
+    }
+
+    window.onload = init;
+</script>
+</body>
+</html>
