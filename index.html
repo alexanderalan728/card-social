@@ -24,68 +24,48 @@
             flex-direction: column;
             align-items: center;
             overflow-x: hidden;
-            background-color: #e4e0f5; /* 基底色 */
+            background: #fff;
         }
 
-        /* --- 🌊 动态流动背景 (增强版) --- */
-        .ambient-light {
+        /* --- 🌊 核心：Mesh Gradient (液态网格渐变) --- */
+        .mesh-bg {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
             z-index: -1;
-            overflow: hidden;
-            background: #fff; /* 防止背景透黑 */
-        }
-        
-        .orb {
-            position: absolute;
-            border-radius: 50%;
-            filter: blur(80px); /* 强模糊 */
-            opacity: 0.8;
-            mix-blend-mode: multiply; /* 颜色混合模式，让重叠处更好看 */
-        }
-
-        /* 紫色主球 - 逆时针大圈游动 */
-        .orb-1 {
-            top: -10%; left: -10%; width: 100vw; height: 100vw;
-            background: #cdb4db; /* 浅紫 */
-            animation: flow-1 15s infinite linear;
+            /* 关键：把背景图做得很大，然后移动它 */
+            background-image: 
+                radial-gradient(at 0% 0%, hsla(253,16%,7%,0) 0, transparent 50%), 
+                radial-gradient(at 50% 0%, hsla(225,39%,30%,0) 0, transparent 50%), 
+                radial-gradient(at 100% 0%, hsla(339,49%,30%,0) 0, transparent 50%);
+            background-color: #e4e0f5;
+            background: 
+                radial-gradient(circle at 15% 50%, #fec5e5, transparent 25%), 
+                radial-gradient(circle at 85% 30%, #c2e9fb, transparent 25%), 
+                radial-gradient(circle at 50% 50%, #e0d4fc, transparent 50%), 
+                radial-gradient(circle at 50% 90%, #fdfcdc, transparent 50%);
+            background-size: 200% 200%;
+            filter: blur(60px); /* 极强的模糊，消除所有边缘 */
+            animation: fluid-move 15s ease-in-out infinite alternate;
         }
 
-        /* 蓝色深邃球 - 顺时针游动 */
-        .orb-2 {
-            bottom: -20%; right: -20%; width: 120vw; height: 120vw;
-            background: #bde0fe; /* 浅蓝 */
-            animation: flow-2 20s infinite linear;
+        /* 动画：让背景缓缓移动，制造流动感 */
+        @keyframes fluid-move {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
         }
 
-        /* 粉色高光球 - 上下浮动穿插 */
-        .orb-3 {
-            top: 30%; left: 30%; width: 80vw; height: 80vw;
-            background: #ffc8dd; /* 嫩粉 */
-            animation: flow-3 12s infinite ease-in-out alternate;
-            opacity: 0.6;
+        /* 叠加一层噪点，增加高级质感（可选，如果不喜欢可删掉） */
+        .noise-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1;
+            opacity: 0.03;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+            pointer-events: none;
         }
 
-        /* 定义流体动画轨迹 */
-        @keyframes flow-1 {
-            0% { transform: translate(0, 0) rotate(0deg); }
-            33% { transform: translate(20%, 10%) rotate(120deg); }
-            66% { transform: translate(-10%, 20%) rotate(240deg); }
-            100% { transform: translate(0, 0) rotate(360deg); }
-        }
-
-        @keyframes flow-2 {
-            0% { transform: translate(0, 0) rotate(0deg) scale(1); }
-            50% { transform: translate(-20%, -10%) rotate(-180deg) scale(1.1); }
-            100% { transform: translate(0, 0) rotate(-360deg) scale(1); }
-        }
-
-        @keyframes flow-3 {
-            0% { transform: translate(-20%, -20%) scale(0.8); }
-            100% { transform: translate(20%, 20%) scale(1.2); }
-        }
-
-        /* --- 顶部导航 --- */
+        /* --- 导航栏 --- */
         .navbar {
             width: 100%;
             padding: 20px 0;
@@ -109,11 +89,7 @@
             background-color: #34c759;
             border-radius: 50%;
             box-shadow: 0 0 8px #34c759;
-            animation: breathe 2s infinite ease-in-out; /* 呼吸灯动画 */
-        }
-        @keyframes breathe {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.6; transform: scale(0.8); }
+            animation: breathe 2s infinite ease-in-out;
         }
         .count-text {
             font-size: 12px;
@@ -130,7 +106,7 @@
             z-index: 10;
         }
 
-        /* --- 玻璃卡片 --- */
+        /* --- 玻璃卡片 (高透白) --- */
         .card {
             background: var(--glass-bg);
             backdrop-filter: var(--backdrop-blur);
@@ -191,7 +167,7 @@
             letter-spacing: -0.3px;
         }
         .btn-submit {
-            background: #1d1d1f;
+            background: #1d1d1f; /* 黑色 */
             color: white;
             box-shadow: 0 5px 15px rgba(0,0,0,0.15);
         }
@@ -237,17 +213,19 @@
             from { opacity: 0; transform: scale(0.8); } 
             to { opacity: 1; transform: scale(1); } 
         }
+        
+        @keyframes breathe {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(0.8); }
+        }
     </style>
 </head>
 <body>
-    <!-- 🟣 极光流动层 -->
-    <div class="ambient-light">
-        <div class="orb orb-1"></div>
-        <div class="orb orb-2"></div>
-        <div class="orb orb-3"></div>
-    </div>
+    <!-- 🌊 液态网格背景 -->
+    <div class="mesh-bg"></div>
+    <!-- ✨ 噪点层 (增加质感) -->
+    <div class="noise-overlay"></div>
 
-    <!-- 顶部导航 -->
     <div class="navbar">
         <h1>
             <span class="status-dot"></span>
