@@ -1,241 +1,226 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Signal Lab</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-        :root {
-            --glass-bg: rgba(255, 255, 255, 0.45);
-            --glass-border: rgba(255, 255, 255, 0.6);
-            --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
-            --backdrop-blur: blur(25px);
-            --text-main: #1d1d1f;
-        }
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>Signal Lab</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-        body {
-            margin: 0; padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
-            color: var(--text-main);
-            min-height: 100vh;
-            display: flex; flex-direction: column; align-items: center;
-            overflow-x: hidden; background-color: #fff;
-        }
+<style>
+:root {
+    --apple-ease: cubic-bezier(0.32, 0.72, 0, 1);
+    --apple-spring: cubic-bezier(0.16, 1, 0.3, 1);
+    --text-main: #1d1d1f;
+}
 
-        /* 🌊 背景流动 */
-        .mesh-bg {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;
-            background-image: radial-gradient(at 0% 0%, hsla(253,16%,7%,0) 0, transparent 50%), radial-gradient(at 50% 0%, hsla(225,39%,30%,0) 0, transparent 50%), radial-gradient(at 100% 0%, hsla(339,49%,30%,0) 0, transparent 50%);
-            background-color: #e4e0f5;
-            background: radial-gradient(circle at 15% 50%, #fec5e5, transparent 25%), radial-gradient(circle at 85% 30%, #c2e9fb, transparent 25%), radial-gradient(circle at 50% 50%, #e0d4fc, transparent 50%), radial-gradient(circle at 50% 90%, #fdfcdc, transparent 50%);
-            background-size: 200% 200%;
-            animation: fluid-move 5s ease-in-out infinite alternate;
-        }
-        @keyframes fluid-move { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
+    color: var(--text-main);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: #fff;
+    overflow-x: hidden;
+}
 
-        /* 导航 */
-        .navbar { width: 100%; padding: 20px 0; text-align: center; z-index: 10; margin-bottom: 10px; }
-        .navbar h1 { font-size: 20px; font-weight: 700; margin: 0; display: flex; align-items: center; justify-content: center; gap: 6px; }
-        .status-dot { width: 8px; height: 8px; background-color: #34c759; border-radius: 50%; box-shadow: 0 0 8px #34c759; animation: breathe 2s infinite ease-in-out; }
-        @keyframes breathe { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.6; transform: scale(0.8); } }
-        .count-text { font-size: 12px; color: rgba(0,0,0,0.5); margin-top: 4px; font-weight: 500; }
+/* 🌊 背景流动 */
+.mesh-bg {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background:
+        radial-gradient(circle at 15% 50%, #fec5e5, transparent 25%),
+        radial-gradient(circle at 85% 30%, #c2e9fb, transparent 25%),
+        radial-gradient(circle at 50% 50%, #e0d4fc, transparent 50%),
+        radial-gradient(circle at 50% 90%, #fdfcdc, transparent 50%);
+    background-size: 200% 200%;
+    animation: fluid 6s ease-in-out infinite alternate;
+}
+@keyframes fluid {
+    from { background-position: 0% 50%; }
+    to { background-position: 100% 50%; }
+}
+
+/* 顶部 */
+.navbar {
+    width: 100%;
+    text-align: center;
+    padding: 20px 0;
+}
+.status-dot {
+    width: 8px;
+    height: 8px;
+    background: #34c759;
+    border-radius: 50%;
+    box-shadow: 0 0 8px #34c759;
+}
+.count-text {
+    font-size: 12px;
+    color: rgba(0,0,0,.5);
+}
+
+/* 容器 */
+.container {
+    width: 90%;
+    max-width: 390px;
+    padding-bottom: 40px;
+}
+
+/* 🍎 液态玻璃卡片 */
+.card {
+    position: relative;
+    background: linear-gradient(135deg, rgba(255,255,255,.6), rgba(255,255,255,.3));
+    backdrop-filter: blur(30px) saturate(180%);
+    border-radius: 28px;
+    padding: 24px;
+    margin-bottom: 22px;
+    box-shadow:
+        inset 0 1px 1px rgba(255,255,255,.9),
+        0 20px 40px rgba(0,0,0,.12);
+    border: 1px solid rgba(255,255,255,.35);
+}
+
+/* 表单 */
+.form-input,.form-select {
+    width: 100%;
+    padding: 15px;
+    border-radius: 16px;
+    border: 1px solid rgba(255,255,255,.4);
+    background: rgba(255,255,255,.4);
+    margin-bottom: 12px;
+    font-size: 15px;
+}
+
+/* 🍎 Apple 按钮 */
+.btn {
+    width: 100%;
+    padding: 16px;
+    border-radius: 22px;
+    border: 1px solid rgba(255,255,255,.4);
+    background: linear-gradient(180deg, rgba(255,255,255,.6), rgba(255,255,255,.3));
+    backdrop-filter: blur(20px);
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow:
+        inset 0 1px 1px rgba(255,255,255,.9),
+        0 10px 25px rgba(0,0,0,.15);
+}
+.btn-submit {
+    background: rgba(29,29,31,.9);
+    color: #fff;
+}
+
+/* 🎁 盲盒动画 */
+.apple-float {
+    animation: appleFloat 1.2s var(--apple-spring) infinite;
+}
+@keyframes appleFloat {
+    0%,100% { transform: translateY(0) scale(1); }
+    50% { transform: translateY(-12px) scale(1.05); }
+}
+.apple-pop {
+    animation: applePop .55s var(--apple-ease) forwards;
+}
+@keyframes applePop {
+    0% { transform: scale(.9); opacity: 0; filter: blur(6px); }
+    60% { transform: scale(1.05); opacity: 1; filter: blur(0); }
+    100% { transform: scale(1); }
+}
+
+/* 🎬 盲盒层 */
+.blind-box-container {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.6);
+    backdrop-filter: blur(15px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+}
+.mystery-box { font-size: 96px; }
+
+/* 🧭 首次引导 */
+.intro-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.35);
+    backdrop-filter: blur(20px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+}
+.intro-card {
+    width: 86%;
+    max-width: 340px;
+    padding: 28px;
+    border-radius: 30px;
+    background: linear-gradient(135deg, rgba(255,255,255,.85), rgba(255,255,255,.65));
+    text-align: center;
+    box-shadow: 0 30px 80px rgba(0,0,0,.25);
+}
+.intro-feature {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 14px;
+    text-align: left;
+}
+</style>
+</head>
+
+<body>
+
+<div class="mesh-bg"></div>
+
+<!-- 🧭 引导页 -->
 <div id="introOverlay" class="intro-overlay">
   <div class="intro-card apple-pop">
     <h2>欢迎来到 Signal Lab</h2>
-    <p class="intro-sub">在这里，捕捉与你同频的信号</p>
+    <p style="color:#666">捕捉与你同频的信号</p>
 
-    <div class="intro-feature">
-      <span>📡</span>
-      <div>
-        <strong>匿名发射</strong>
-        <p>无需头像，无社交压力</p>
-      </div>
-    </div>
-
-    <div class="intro-feature">
-      <span>🎁</span>
-      <div>
-        <strong>每日一次捕捉</strong>
-        <p>每次相遇都更珍贵</p>
-      </div>
-    </div>
-
-    <div class="intro-feature">
-      <span>🔒</span>
-      <div>
-        <strong>仅匹配可见</strong>
-        <p>你的联系方式只对命中对象开放</p>
-      </div>
-    </div>
+    <div class="intro-feature"><span>📡</span><div><strong>匿名发射</strong><p>无需社交压力</p></div></div>
+    <div class="intro-feature"><span>🎁</span><div><strong>每日一次捕捉</strong><p>相遇更珍贵</p></div></div>
+    <div class="intro-feature"><span>🔒</span><div><strong>仅匹配可见</strong><p>安全可控</p></div></div>
 
     <button class="btn btn-submit" onclick="closeIntro()">开始使用</button>
   </div>
 </div>
 
-        .container { width: 90%; max-width: 390px; padding-bottom: 40px; z-index: 10; }
+<div class="navbar">
+    <div style="display:flex;gap:6px;justify-content:center;align-items:center">
+        <div class="status-dot"></div>
+        <strong>Signal Lab</strong>
+    </div>
+    <div class="count-text">已连接 <span id="totalCount">...</span> 个同频信号</div>
+</div>
 
-        /* 卡片 */
-      .card {
-    position: relative;
-    background:
-        linear-gradient(
-            135deg,
-            rgba(255,255,255,0.55),
-            rgba(255,255,255,0.25)
-        );
-    backdrop-filter: blur(30px) saturate(180%);
-    -webkit-backdrop-filter: blur(30px) saturate(180%);
-    border-radius: 28px;
-    padding: 24px;
-    margin-bottom: 22px;
-
-    /* iOS 26 核心：内外双层光影 */
-    box-shadow:
-        inset 0 1px 1px rgba(255,255,255,0.8),
-        inset 0 -1px 1px rgba(255,255,255,0.2),
-        0 20px 40px rgba(0,0,0,0.12);
-
-    border: 1px solid rgba(255,255,255,0.35);
-    overflow: hidden;}
-        .card::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background:
-        radial-gradient(
-            circle at 20% 10%,
-            rgba(255,255,255,0.7),
-            transparent 40%
-        ),
-        radial-gradient(
-            circle at 80% 90%,
-            rgba(255,255,255,0.4),
-            transparent 45%
-        );
-    opacity: 0.6;
-    pointer-events: none;
-}
-        
-        /* 按钮 */
-       .btn {
-    position: relative;
-    padding: 16px;
-    border-radius: 22px;
-    font-size: 16px;
-    font-weight: 600;
-
-    background:
-        linear-gradient(
-            180deg,
-            rgba(255,255,255,0.55),
-            rgba(255,255,255,0.25)
-        );
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255,255,255,0.4);
-
-    box-shadow:
-        inset 0 1px 1px rgba(255,255,255,0.9),
-        0 10px 25px rgba(0,0,0,0.15);
-
-    transition: transform 0.25s ease, box-shadow 0.25s ease;
-}
-
-.btn:active {
-    transform: scale(0.96) translateY(1px);
-    box-shadow:
-        inset 0 1px 2px rgba(255,255,255,0.6),
-        0 5px 12px rgba(0,0,0,0.2);
-}
-        
-        .footer { text-align: center; font-size: 12px; color: rgba(0,0,0,0.3); padding: 20px 0; margin-top: auto; }
-
-        /* --- 全屏弹窗样式 --- */
-        .blind-box-container {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(15px);
-            z-index: 999; display: none; /* 默认隐藏 */
-            flex-direction: column; align-items: center; justify-content: center;
-        }
-        .mystery-box { font-size: 100px; display: block; filter: drop-shadow(0 0 30px rgba(255, 255, 255, 0.5)); }
-        .loading-text { color: white; font-size: 18px; margin-top: 20px; font-weight: 600; letter-spacing: 1px; }
-
-        .shake-anim { animation: shake 0.5s infinite; }
-        @keyframes shake { 0% { transform: rotate(0deg); } 25% { transform: rotate(10deg) translate(5px, 0); } 75% { transform: rotate(-10deg) translate(-5px, 0); } 100% { transform: rotate(0deg); } }
-        
-        .explode-anim { animation: explode 0.4s forwards ease-out; }
-        @keyframes explode { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.5); opacity: 0.5; } 100% { transform: scale(2); opacity: 0; } }
-
-        .result-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.5); z-index: 1000;
-            display: none; align-items: center; justify-content: center;
-        }
-        .result-box {
-            width: 80%; max-width: 320px; background: rgba(255, 255, 255, 0.9);
-            border-radius: 24px; padding: 30px 20px; text-align: center;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3); backdrop-filter: blur(20px);
-            animation: popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); position: relative;
-        }
-        .close-btn { position: absolute; top: 15px; right: 15px; width: 30px; height: 30px; background: rgba(0,0,0,0.1); border-radius: 50%; color: #666; font-size: 20px; line-height: 30px; cursor: pointer; }
-        
-        .res-avatar { font-size: 56px; margin-bottom: 12px; display: block; }
-        .res-name { font-size: 22px; font-weight: 700; color: #1d1d1f; margin-bottom: 4px; }
-        .res-details { font-size: 13px; color: #86868b; background: #f2f2f7; padding: 4px 12px; border-radius: 100px; display: inline-block; margin-bottom: 16px; }
-        .res-contact { background: #fff; color: #007AFF; padding: 14px; border-radius: 14px; font-weight: 600; font-size: 16px; cursor: pointer; border: 1px solid rgba(0, 122, 255, 0.1); box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-        .tips { font-size: 12px; color: #aaa; margin-top: 12px; }
-        
-        @keyframes popIn { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
-    </style>
-</head>
-<body>
-    <div class="mesh-bg"></div>
-    <div class="navbar"><h1><span class="status-dot"></span>Signal Lab</h1><p class="count-text">已连接 <span id="totalCount" style="color:#007AFF; font-weight:bold;">...</span> 个同频信号</p></div>
-
-    <div class="container">
-        <!-- 发射模块 -->
-        <div class="card">
-            <div class="card-header">📡 发射信号</div>
-            <div class="form-group"><input type="text" id="nickname" class="form-input" placeholder="代号 / 昵称"></div>
-            <div class="form-row">
-                <div class="form-group" style="flex: 1.5;"><select id="gender" class="form-select"><option value="男">我是男生 👦</option><option value="女">我是女生 👧</option></select></div>
-                <div class="form-group"><input type="number" id="age" class="form-input" placeholder="年龄"></div>
-            </div>
-            <div class="form-group"><input type="text" id="city" class="form-input" placeholder="坐标 (如: 北京)"></div>
-            <div class="form-group"><input type="text" id="contact" class="form-input" placeholder="微信号 (仅匹配可见)"></div>
-            <button class="btn btn-submit" onclick="submitCard()">发射信号</button>
-        </div>
-
-        <!-- 捕捉模块 -->
-        <div class="card">
-            <div class="card-header">🔍 捕捉信号</div>
-            <p style="font-size: 13px; color: rgba(0,0,0,0.5); margin-bottom: 15px;">点击下方按钮，随机接入一个同频信号</p>
-            <button class="btn btn-draw-male" onclick="drawCard('男')">捕捉男生 👦</button>
-            <button class="btn btn-draw-female" onclick="drawCard('女')">捕捉女生 👧</button>
-        </div>
-
-        <div class="footer">Signal Lab © 2026<br>严禁上传违规内容，网络交友需谨慎</div>
+<div class="container">
+    <div class="card">
+        <input id="nickname" class="form-input" placeholder="代号 / 昵称">
+        <select id="gender" class="form-select">
+            <option value="男">我是男生</option>
+            <option value="女">我是女生</option>
+        </select>
+        <input id="age" class="form-input" placeholder="年龄">
+        <input id="city" class="form-input" placeholder="城市">
+        <input id="contact" class="form-input" placeholder="微信号">
+        <button class="btn btn-submit" onclick="submitCard()">发射信号</button>
     </div>
 
-    <!-- 全屏动画层 -->
-    <div id="blindBoxAnim" class="blind-box-container">
-        <div id="mysteryBox" class="mystery-box">🎁</div>
-        <p class="loading-text">正在锁定信号源...</p>
+    <div class="card">
+        <button class="btn" onclick="drawCard('男')">捕捉男生</button>
+        <button class="btn" onclick="drawCard('女')">捕捉女生</button>
     </div>
+</div>
 
-    <!-- 全屏结果层 -->
-    <div id="resultOverlay" class="result-overlay" onclick="closeResult()">
-        <div class="result-box" onclick="event.stopPropagation()">
-            <div class="close-btn" onclick="closeResult()">×</div>
-            <span class="res-avatar" id="resIcon">🎉</span>
-            <div class="res-name" id="resNick">未知用户</div>
-            <div class="res-details" id="resInfo">--岁 | --</div>
-            <div class="res-contact" id="resContact" onclick="copyContact()">微信号：xxx</div>
-            <p class="tips">👆 点击即可复制</p>
-        </div>
-    </div>
+<div id="blindBoxAnim" class="blind-box-container">
+    <div id="mysteryBox" class="mystery-box">🎁</div>
+</div>
 
-    <script src="app.js"></script>
-    <script>function closeResult(){document.getElementById('resultOverlay').style.display='none';}</script>
+<script src="app.js"></script>
 </body>
 </html>
