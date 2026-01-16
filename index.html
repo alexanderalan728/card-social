@@ -40,6 +40,38 @@
         .status-dot { width: 8px; height: 8px; background-color: #34c759; border-radius: 50%; box-shadow: 0 0 8px #34c759; animation: breathe 2s infinite ease-in-out; }
         @keyframes breathe { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.6; transform: scale(0.8); } }
         .count-text { font-size: 12px; color: rgba(0,0,0,0.5); margin-top: 4px; font-weight: 500; }
+<div id="introOverlay" class="intro-overlay">
+  <div class="intro-card apple-pop">
+    <h2>欢迎来到 Signal Lab</h2>
+    <p class="intro-sub">在这里，捕捉与你同频的信号</p>
+
+    <div class="intro-feature">
+      <span>📡</span>
+      <div>
+        <strong>匿名发射</strong>
+        <p>无需头像，无社交压力</p>
+      </div>
+    </div>
+
+    <div class="intro-feature">
+      <span>🎁</span>
+      <div>
+        <strong>每日一次捕捉</strong>
+        <p>每次相遇都更珍贵</p>
+      </div>
+    </div>
+
+    <div class="intro-feature">
+      <span>🔒</span>
+      <div>
+        <strong>仅匹配可见</strong>
+        <p>你的联系方式只对命中对象开放</p>
+      </div>
+    </div>
+
+    <button class="btn btn-submit" onclick="closeIntro()">开始使用</button>
+  </div>
+</div>
 
         .container { width: 90%; max-width: 390px; padding-bottom: 40px; z-index: 10; }
 
