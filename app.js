@@ -112,3 +112,11 @@ function copyContact() {
         document.body.removeChild(textArea);
     }
 }
+document.addEventListener("mousemove", e => {
+    document.querySelectorAll('.card').forEach(card => {
+        const rect = card.getBoundingClientRect();
+        const x = (e.clientX - rect.left) / rect.width - 0.5;
+        const y = (e.clientY - rect.top) / rect.height - 0.5;
+        card.style.transform = `translate(${x * 4}px, ${y * 4}px)`;
+    });
+});
