@@ -23,7 +23,7 @@
             overflow-x: hidden; background-color: #fff;
         }
 
-        /* 🌊 背景流动动画 */
+        /* 🌊 背景流动 */
         .mesh-bg {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;
             background-image: radial-gradient(at 0% 0%, hsla(253,16%,7%,0) 0, transparent 50%), radial-gradient(at 50% 0%, hsla(225,39%,30%,0) 0, transparent 50%), radial-gradient(at 100% 0%, hsla(339,49%,30%,0) 0, transparent 50%);
@@ -43,58 +43,61 @@
 
         .container { width: 90%; max-width: 390px; padding-bottom: 40px; z-index: 10; }
 
-        /* 玻璃卡片 */
-        .card {
-            background: var(--glass-bg); backdrop-filter: var(--backdrop-blur); -webkit-backdrop-filter: var(--backdrop-blur);
-            border: 1px solid var(--glass-border); box-shadow: var(--glass-shadow);
-            border-radius: 24px; padding: 24px; margin-bottom: 20px; transition: transform 0.2s;
-        }
+        /* 卡片 */
+        .card { background: var(--glass-bg); backdrop-filter: var(--backdrop-blur); -webkit-backdrop-filter: var(--backdrop-blur); border: 1px solid var(--glass-border); box-shadow: var(--glass-shadow); border-radius: 24px; padding: 24px; margin-bottom: 20px; transition: transform 0.2s; }
         .card-header { font-size: 16px; font-weight: 700; margin-bottom: 15px; display: flex; align-items: center; gap: 6px; opacity: 0.9; }
 
         .form-group { margin-bottom: 12px; }
         .form-row { display: flex; gap: 10px; }
         .form-row .form-group { flex: 1; }
-        .form-input, .form-select { width: 100%; padding: 15px; background: rgba(255, 255, 255, 0.6); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 16px; font-size: 15px; box-sizing: border-box; outline: none; transition: all 0.2s; }
-        .form-input:focus { background: #fff; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
+        .form-input, .form-select { width: 100%; padding: 15px; background: rgba(255, 255, 255, 0.4); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 16px; font-size: 15px; box-sizing: border-box; outline: none; transition: all 0.2s; }
+        .form-input:focus { background: rgba(255, 255, 255, 0.8); box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
 
-        /* 果冻按钮 */
+        /* 按钮 */
         .btn { width: 100%; padding: 16px; border: none; border-radius: 20px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s; position: relative; overflow: hidden; background: rgba(255, 255, 255, 0.4); border: 1px solid rgba(255, 255, 255, 0.6); backdrop-filter: blur(10px); box-shadow: 0 4px 15px rgba(0,0,0,0.05), inset 0 1px 0 rgba(255,255,255,0.8); }
         .btn:active { transform: scale(0.96); background: rgba(255, 255, 255, 0.3); }
         .btn-submit { color: #fff; background: rgba(29, 29, 31, 0.85); border: 1px solid rgba(255,255,255,0.1); }
         .btn-draw-male { color: #0051a8; background: rgba(0, 122, 255, 0.15); border: 1px solid rgba(0, 122, 255, 0.2); margin-bottom: 12px; }
         .btn-draw-female { color: #a8002a; background: rgba(255, 45, 85, 0.15); border: 1px solid rgba(255, 45, 85, 0.2); }
 
-        /* --- 🎁 盲盒摇晃动画 --- */
-        .blind-box-container { text-align: center; padding: 20px 0; display: none; }
-        .mystery-box { font-size: 80px; display: inline-block; filter: drop-shadow(0 10px 20px rgba(0,0,0,0.1)); }
-        
-        /* 疯狂摇晃 */
-        .shake-anim { animation: shake 0.5s infinite; }
-        @keyframes shake {
-            0% { transform: rotate(0deg); }
-            25% { transform: rotate(10deg) translate(5px, 0); }
-            50% { transform: rotate(-5deg); }
-            75% { transform: rotate(-10deg) translate(-5px, 0); }
-            100% { transform: rotate(0deg); }
-        }
-
-        /* 炸开消失 */
-        .explode-anim { animation: explode 0.4s forwards ease-out; }
-        @keyframes explode {
-            0% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.5); opacity: 0.5; }
-            100% { transform: scale(2); opacity: 0; }
-        }
-
-        /* 结果展示 */
-        .result-box { display: none; background: rgba(255,255,255,0.9); border-radius: 20px; padding: 24px; text-align: center; margin-top: 20px; animation: popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); box-shadow: 0 20px 60px -10px rgba(0,0,0,0.15); }
-        .res-avatar { font-size: 48px; margin-bottom: 8px; display: block; }
-        .res-name { font-size: 20px; font-weight: 800; color: #000; }
-        .res-details { font-size: 13px; color: #666; background: #f2f2f7; padding: 4px 12px; border-radius: 100px; display: inline-block; margin-bottom: 16px; margin-top: 5px;}
-        .res-contact { background: #fff; color: #007AFF; padding: 12px; border-radius: 12px; font-weight: 600; font-size: 16px; border: 1px solid rgba(0,0,0,0.05); box-shadow: 0 4px 12px rgba(0,0,0,0.05); cursor: pointer; }
-        .tips { font-size: 12px; color: #aaa; margin-top: 10px; }
         .footer { text-align: center; font-size: 12px; color: rgba(0,0,0,0.3); padding: 20px 0; margin-top: auto; }
-        @keyframes popIn { from { opacity: 0; transform: scale(0.5); } to { opacity: 1; transform: scale(1); } }
+
+        /* --- 全屏弹窗样式 --- */
+        .blind-box-container {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(15px);
+            z-index: 999; display: none; /* 默认隐藏 */
+            flex-direction: column; align-items: center; justify-content: center;
+        }
+        .mystery-box { font-size: 100px; display: block; filter: drop-shadow(0 0 30px rgba(255, 255, 255, 0.5)); }
+        .loading-text { color: white; font-size: 18px; margin-top: 20px; font-weight: 600; letter-spacing: 1px; }
+
+        .shake-anim { animation: shake 0.5s infinite; }
+        @keyframes shake { 0% { transform: rotate(0deg); } 25% { transform: rotate(10deg) translate(5px, 0); } 75% { transform: rotate(-10deg) translate(-5px, 0); } 100% { transform: rotate(0deg); } }
+        
+        .explode-anim { animation: explode 0.4s forwards ease-out; }
+        @keyframes explode { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.5); opacity: 0.5; } 100% { transform: scale(2); opacity: 0; } }
+
+        .result-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.5); z-index: 1000;
+            display: none; align-items: center; justify-content: center;
+        }
+        .result-box {
+            width: 80%; max-width: 320px; background: rgba(255, 255, 255, 0.9);
+            border-radius: 24px; padding: 30px 20px; text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3); backdrop-filter: blur(20px);
+            animation: popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); position: relative;
+        }
+        .close-btn { position: absolute; top: 15px; right: 15px; width: 30px; height: 30px; background: rgba(0,0,0,0.1); border-radius: 50%; color: #666; font-size: 20px; line-height: 30px; cursor: pointer; }
+        
+        .res-avatar { font-size: 56px; margin-bottom: 12px; display: block; }
+        .res-name { font-size: 22px; font-weight: 700; color: #1d1d1f; margin-bottom: 4px; }
+        .res-details { font-size: 13px; color: #86868b; background: #f2f2f7; padding: 4px 12px; border-radius: 100px; display: inline-block; margin-bottom: 16px; }
+        .res-contact { background: #fff; color: #007AFF; padding: 14px; border-radius: 14px; font-weight: 600; font-size: 16px; cursor: pointer; border: 1px solid rgba(0, 122, 255, 0.1); box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .tips { font-size: 12px; color: #aaa; margin-top: 12px; }
+        
+        @keyframes popIn { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
     </style>
 </head>
 <body>
@@ -121,25 +124,30 @@
             <p style="font-size: 13px; color: rgba(0,0,0,0.5); margin-bottom: 15px;">点击下方按钮，随机接入一个同频信号</p>
             <button class="btn btn-draw-male" onclick="drawCard('男')">捕捉男生 👦</button>
             <button class="btn btn-draw-female" onclick="drawCard('女')">捕捉女生 👧</button>
-
-            <!-- 🎁 盲盒动画区域 -->
-            <div id="blindBoxAnim" class="blind-box-container">
-                <div id="mysteryBox" class="mystery-box">🎁</div>
-                <p style="color: #666; font-size: 14px; margin-top: 10px;">正在连接信号源...</p>
-            </div>
-
-            <!-- 结果区域 -->
-            <div id="resultArea" class="result-box">
-                <span class="res-avatar" id="resIcon">🎉</span>
-                <div class="res-name" id="resNick">未知用户</div>
-                <div class="res-details" id="resInfo">--岁 | --</div>
-                <div class="res-contact" id="resContact" onclick="copyContact()">微信号：xxx</div>
-                <p class="tips">👆 点击即可复制</p>
-            </div>
         </div>
 
         <div class="footer">Signal Lab © 2026<br>严禁上传违规内容，网络交友需谨慎</div>
     </div>
+
+    <!-- 全屏动画层 -->
+    <div id="blindBoxAnim" class="blind-box-container">
+        <div id="mysteryBox" class="mystery-box">🎁</div>
+        <p class="loading-text">正在锁定信号源...</p>
+    </div>
+
+    <!-- 全屏结果层 -->
+    <div id="resultOverlay" class="result-overlay" onclick="closeResult()">
+        <div class="result-box" onclick="event.stopPropagation()">
+            <div class="close-btn" onclick="closeResult()">×</div>
+            <span class="res-avatar" id="resIcon">🎉</span>
+            <div class="res-name" id="resNick">未知用户</div>
+            <div class="res-details" id="resInfo">--岁 | --</div>
+            <div class="res-contact" id="resContact" onclick="copyContact()">微信号：xxx</div>
+            <p class="tips">👆 点击即可复制</p>
+        </div>
+    </div>
+
     <script src="app.js"></script>
+    <script>function closeResult(){document.getElementById('resultOverlay').style.display='none';}</script>
 </body>
 </html>
