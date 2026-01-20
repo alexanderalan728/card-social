@@ -216,6 +216,48 @@ input,select{
   color:#aaa;
   margin-top:10px;
 }
+/* --- 放在 style.css 最底部 --- */
+
+/* Toast 提示框容器 */
+#toast-container {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: none; /* 只有文字部分可点击，不阻挡下方操作 */
+}
+
+/* 提示框本体 */
+.toast {
+    background: rgba(0, 0, 0, 0.85);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 50px;
+    font-size: 0.9rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    animation: slideDown 0.3s ease-out, fadeOut 0.3s ease-in 2.7s forwards;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    backdrop-filter: blur(4px);
+}
+
+/* 成功样式 */
+.toast.success { border-left: 4px solid #10b981; }
+/* 错误样式 */
+.toast.error { border-left: 4px solid #ef4444; }
+
+@keyframes slideDown {
+    from { transform: translateY(-20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+@keyframes fadeOut {
+    to { opacity: 0; transform: translateY(-10px); }
+}
 </style>
 </head>
 
@@ -283,5 +325,6 @@ function closeResult(){
   document.getElementById('resultOverlay').style.display='none'
 }
 </script>
+<div id="toast-container"></div>
 </body>
 </html>
