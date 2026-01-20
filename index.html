@@ -3,105 +3,121 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Signal Lab - 盲盒交友</title>
+    <title>Signal Lab - 同频信号</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        /* 1. 完全保留你原本的背景渐变和基础样式 */
+        /* ✨ 核心 1：流动渐变背景逻辑 */
         body {
             margin: 0;
             font-family: -apple-system, sans-serif;
-            background: linear-gradient(180deg, #e0f2fe 0%, #fce7f3 50%, #f3e8ff 100%);
+            /* 使用你截图中的柔和色彩方案 */
+            background: linear-gradient(-45deg, #e0f2fe, #fce7f3, #f3e8ff, #dcfce7);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
             min-height: 100vh;
             display: flex;
             justify-content: center;
             padding: 20px;
+            overflow-x: hidden;
         }
 
-        .container { width: 100%; max-width: 400px; margin-top: 40px; }
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
 
-        header { text-align: center; margin-bottom: 25px; }
-        h1 { margin: 0; font-size: 1.6rem; color: #1e293b; }
-        .stats { font-size: 0.85rem; color: #64748b; margin-top: 5px; }
+        /* ✨ 核心 2：呼吸灯动画逻辑 */
+        .status-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background-color: #22c55e;
+            border-radius: 50%;
+            margin-right: 8px;
+            vertical-align: middle;
+            box-shadow: 0 0 0 rgba(34, 197, 94, 0.4);
+            animation: breathe 2s infinite;
+        }
+
+        @keyframes breathe {
+            0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(34, 197, 94, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+        }
+
+        /* 基础布局保持你原本的轻盈感 */
+        .container { width: 100%; max-width: 400px; margin-top: 40px; text-align: center; }
+        
+        .logo-title { font-size: 1.8rem; font-weight: bold; color: #1e293b; margin: 0; }
+        .stats { font-size: 0.9rem; color: #64748b; margin: 10px 0 30px; }
         #totalCount { color: #6366f1; font-weight: bold; }
 
-        /* 2. 保持你截图中的卡片质感 */
+        /* 选项卡样式还原 */
+        .tabs { display: flex; gap: 8px; margin-bottom: 20px; padding: 4px; background: rgba(255,255,255,0.4); border-radius: 16px; }
+        .tab-btn {
+            flex: 1; padding: 12px; border: none; border-radius: 12px;
+            background: transparent; color: #64748b; font-size: 0.9rem; cursor: pointer;
+        }
+        .tab-btn.active { background: #fff; color: #6366f1; font-weight: bold; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+
+        /* 卡片样式还原 */
         .card {
-            background: rgba(255, 255, 255, 0.7);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            padding: 25px;
-            border-radius: 24px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.05);
-            border: 1px solid rgba(255,255,255,0.4);
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            padding: 30px;
+            border-radius: 32px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.03);
+            border: 1px solid rgba(255,255,255,0.6);
             margin-bottom: 20px;
         }
 
-        .card-header { font-weight: bold; margin-bottom: 20px; color: #334155; }
-
-        /* 选项卡 */
-        .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
-        .tab-btn {
-            flex: 1; padding: 10px; border: none; border-radius: 12px;
-            background: rgba(255,255,255,0.5); color: #64748b; cursor: pointer;
-        }
-        .tab-btn.active { background: #fff; color: #6366f1; font-weight: bold; }
-
-        /* 表单控件样式 */
         .input-group { margin-bottom: 15px; text-align: left; }
-        label { display: block; font-size: 0.8rem; color: #64748b; margin-bottom: 5px; }
+        label { display: block; font-size: 0.8rem; color: #94a3b8; margin-bottom: 8px; padding-left: 4px; }
+        
         input, select {
-            width: 100%; padding: 12px; border-radius: 12px;
-            border: 1px solid rgba(0,0,0,0.05); outline: none; background: #fff;
+            width: 100%; padding: 14px; border-radius: 16px;
+            border: 1px solid rgba(0,0,0,0.03); outline: none; background: #fff;
+            font-size: 1rem; color: #334155;
         }
 
-        /* 按钮样式：保持你原来的颜色 */
         .btn {
-            width: 100%; padding: 14px; border: none; border-radius: 14px;
-            font-size: 1rem; font-weight: bold; cursor: pointer; margin-top: 5px;
+            width: 100%; padding: 16px; border: none; border-radius: 18px;
+            font-size: 1rem; font-weight: bold; cursor: pointer; transition: 0.2s;
         }
-        .btn-submit { background: #6366f1; color: white; }
-        .btn-draw-male { background: #3b82f6; color: white; margin-bottom: 10px; }
-        .btn-draw-female { background: #ec4899; color: white; }
+        .btn-submit { background: #6366f1; color: white; margin-top: 10px; }
+        .btn-draw-male { background: #dbeafe; color: #2563eb; margin-bottom: 12px; }
+        .btn-draw-female { background: #fce7f3; color: #db2777; }
 
-        /* 弹窗与动画层 */
+        /* 弹窗与提示 */
         .overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.4); backdrop-filter: blur(4px);
+            background: rgba(0,0,0,0.3); backdrop-filter: blur(8px);
             display: none; justify-content: center; align-items: center; z-index: 1000;
         }
         .result-box {
-            background: white; width: 85%; max-width: 320px; padding: 25px;
-            border-radius: 24px; position: relative; text-align: center;
+            background: #fff; width: 85%; max-width: 320px; padding: 30px;
+            border-radius: 32px; position: relative; text-align: center;
         }
-        .close-btn { position: absolute; top: 15px; right: 20px; font-size: 20px; color: #94a3b8; cursor: pointer; }
-
-        /* 盲盒摇晃动画 */
-        .mystery-box { font-size: 60px; }
-        .shake-anim { animation: shake 0.5s infinite; }
-        @keyframes shake {
-            0%, 100% { transform: rotate(0); }
-            25% { transform: rotate(8deg); }
-            75% { transform: rotate(-8deg); }
-        }
-
-        /* Toast 样式：为了配合新的提示逻辑 */
         #toast-container { position: fixed; top: 30px; left: 50%; transform: translateX(-50%); z-index: 9999; }
         .toast {
-            background: rgba(0,0,0,0.8); color: white; padding: 8px 20px; 
-            border-radius: 50px; margin-bottom: 8px; font-size: 0.85rem;
-            animation: fadeIn 0.3s forwards;
+            background: rgba(0,0,0,0.8); color: white; padding: 10px 24px; 
+            border-radius: 50px; font-size: 0.9rem; animation: slideIn 0.3s;
         }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
 
-        .footer { font-size: 0.7rem; color: #94a3b8; margin-top: 20px; line-height: 1.4; text-align: center; }
+        .footer { font-size: 0.75rem; color: #cbd5e1; margin-top: 20px; line-height: 1.6; }
     </style>
 </head>
 <body>
 
     <div class="container">
         <header>
-            <h1>Signal Lab</h1>
-            <div class="stats">已连接 <span id="totalCount">...</span> 个同频信号</div>
+            <div class="logo-title">
+                <span class="status-dot"></span>Signal Lab
+            </div>
+            <div class="stats">已连接 <span id="totalCount">518</span> 个同频信号</div>
         </header>
 
         <div class="tabs">
@@ -122,7 +138,7 @@
             </div>
             <div style="display: flex; gap: 10px; margin-bottom: 15px;">
                 <input type="number" id="age" placeholder="年龄" style="flex: 1;">
-                <input type="text" id="city" placeholder="城市" style="flex: 2;">
+                <input type="text" id="city" placeholder="城市" style="flex: 1;">
             </div>
             <div class="input-group">
                 <label>微信号 (仅被抽中者可见)</label>
@@ -133,30 +149,26 @@
         </div>
 
         <div id="receive-section" class="card" style="display: none;">
-            <div class="card-header">🔍 捕捉信号</div>
+            <div style="margin-bottom: 25px;">
+                <h3 style="margin: 0; color: #1e293b;">🔍 捕捉信号</h3>
+                <p style="font-size: 0.8rem; color: #94a3b8; margin-top: 5px;">连接一个正在寻找你的 TA</p>
+            </div>
             <button class="btn btn-draw-male" onclick="drawCard('男')">捕捉男生 👦</button>
             <button class="btn btn-draw-female" onclick="drawCard('女')">捕捉女生 👧</button>
-            <div class="footer">每天只能捕捉 1 次信号哦<br>缘分正在路上...</div>
+            <div class="footer">缘分正在路上...</div>
         </div>
-    </div>
-
-    <div id="blindBoxAnim" class="overlay">
-        <div id="mysteryBox" class="mystery-box">🎁</div>
     </div>
 
     <div id="resultOverlay" class="overlay" onclick="closeOverlay()">
         <div class="result-box" onclick="event.stopPropagation()">
-            <div class="close-btn" onclick="closeOverlay()">×</div>
-            <div class="res-avatar" id="resIcon">👦</div>
-            <div class="res-name" id="resNick">--</div>
-            <div class="res-details" id="resInfo">--</div>
-            <div class="res-contact" id="resContact" onclick="copyContact()">点击复制微信号</div>
-            <p style="font-size: 0.7rem; color: #94a3b8; margin-top: 15px;">👆 复制微信号去打个招呼吧</p>
+            <div id="resIcon" style="font-size: 50px; margin-bottom: 10px;">👦</div>
+            <div id="resNick" style="font-size: 1.2rem; font-weight: bold;">--</div>
+            <div id="resInfo" style="color: #64748b; margin: 10px 0 20px;">--</div>
+            <div id="resContact" style="background: #f8fafc; padding: 15px; border-radius: 16px; color: #6366f1; font-weight: bold;" onclick="copyContact()">点击复制微信号</div>
         </div>
     </div>
 
     <div id="toast-container"></div>
-
     <script src="app.js"></script>
 </body>
 </html>
