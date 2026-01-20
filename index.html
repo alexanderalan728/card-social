@@ -1,330 +1,212 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
-<title>Signal Lab</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Signal Lab - 同频信号实验室</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --primary-color: #6366f1;
+            --accent-color: #a855f7;
+            --bg-gradient: linear-gradient(135deg, #e0e7ff 0%, #fae8ff 100%);
+        }
 
-<style>
-:root{
-  --glass-bg: rgba(255,255,255,.75);
-  --glass-border: rgba(255,255,255,.6);
-  --glass-shadow: 0 30px 80px rgba(0,0,0,.35);
-  --blur: blur(22px);
-  --ease-ios: cubic-bezier(.16,1,.3,1);
-  --text: #1d1d1f;
-}
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        
+        body {
+            margin: 0;
+            font-family: -apple-system, "Helvetica Neue", sans-serif;
+            background: var(--bg-gradient);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 20px;
+        }
 
-*{box-sizing:border-box}
-body{
-  margin:0;
-  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display";
-  color:var(--text);
-  background:#f2f2f7;
-}
+        .mesh-bg {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1; opacity: 0.5;
+            background-image: radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), 
+                              radial-gradient(at 50% 0%, hsla(225,39%,30%,1) 0, transparent 50%);
+            filter: blur(100px);
+        }
 
-/* ====== 背景 ====== */
-.mesh-bg{
-  position:fixed;inset:0;z-index:-1;
-  background:
-    radial-gradient(circle at 15% 30%, #ffd6e8, transparent 40%),
-    radial-gradient(circle at 85% 20%, #cce7ff, transparent 40%),
-    radial-gradient(circle at 50% 80%, #e5dcff, transparent 50%);
-  animation:bgmove 8s ease-in-out infinite alternate;
-}
-@keyframes bgmove{
-  from{background-position:0% 0%}
-  to{background-position:100% 100%}
-}
+        .container { width: 100%; max-width: 400px; margin-top: 40px; }
 
-/* ====== 手机端真正居中 ====== */
-.viewport{
-  min-height:100svh;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  padding:
-    env(safe-area-inset-top)
-    16px
-    env(safe-area-inset-bottom);
-}
+        header { text-align: center; margin-bottom: 30px; }
+        h1 { margin: 0; font-size: 1.8rem; color: #1e293b; letter-spacing: -1px; }
+        .stats { font-size: 0.9rem; color: #64748b; margin-top: 8px; }
+        #totalCount { color: var(--primary-color); font-weight: bold; }
 
-/* ====== 主卡片 ====== */
-.app{
-  width:100%;
-  max-width:380px;
-  background:linear-gradient(135deg,rgba(255,255,255,.95),rgba(255,255,255,.7));
-  backdrop-filter:var(--blur);
-  border-radius:28px;
-  box-shadow:var(--glass-shadow);
-  padding:28px 22px;
-  animation:enter .6s var(--ease-ios);
-}
-@keyframes enter{
-  from{opacity:0;transform:translateY(24px) scale(.96)}
-  to{opacity:1;transform:none}
-}
+        /* 选项卡切换 */
+        .tabs {
+            display: flex; gap: 10px; margin-bottom: 20px;
+            background: rgba(255,255,255,0.5); padding: 5px; border-radius: 16px;
+        }
+        .tab-btn {
+            flex: 1; padding: 12px; border: none; border-radius: 12px;
+            background: transparent; color: #64748b; font-weight: bold; cursor: pointer;
+            transition: 0.3s;
+        }
+        .tab-btn.active { background: #fff; color: var(--primary-color); box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
 
-/* ====== 顶部 ====== */
-.navbar{text-align:center;margin-bottom:18px}
-.navbar h1{
-  margin:0;font-size:20px;font-weight:700;
-  display:flex;gap:8px;align-items:center;justify-content:center;
-}
-.status-dot{
-  width:8px;height:8px;border-radius:50%;
-  background:#34c759;box-shadow:0 0 10px #34c759;
-  animation:breathe 2s infinite;
-}
-@keyframes breathe{
-  50%{opacity:.5;transform:scale(.8)}
-}
-.count-text{
-  margin-top:6px;
-  font-size:12px;color:#6e6e73;
-}
+        /* 卡片基础样式 */
+        .card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            padding: 25px;
+            border-radius: 24px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            border: 1px solid rgba(255,255,255,0.3);
+            text-align: center;
+        }
 
-/* ====== 卡片块 ====== */
-.card{
-  background:rgba(255,255,255,.55);
-  backdrop-filter:blur(18px);
-  border-radius:22px;
-  padding:20px;
-  margin-bottom:16px;
-}
-.card-header{
-  font-size:15px;
-  font-weight:700;
-  margin-bottom:12px;
-}
+        /* 表单样式 */
+        .input-group { margin-bottom: 15px; text-align: left; }
+        label { display: block; font-size: 0.85rem; color: #64748b; margin-bottom: 5px; padding-left: 5px; }
+        input, select {
+            width: 100%; padding: 12px 15px; border-radius: 12px;
+            border: 1px solid #e2e8f0; outline: none; font-size: 1rem; transition: 0.3s;
+        }
+        input:focus { border-color: var(--primary-color); background: #fff; }
 
-/* ====== 表单 ====== */
-.form-group{margin-bottom:12px}
-.form-row{display:flex;gap:10px}
+        .btn {
+            width: 100%; padding: 14px; border: none; border-radius: 14px;
+            font-size: 1rem; font-weight: bold; cursor: pointer; transition: 0.2s;
+            margin-top: 10px;
+        }
+        .btn-submit { background: var(--primary-color); color: white; }
+        .btn-draw-male { background: #3b82f6; color: white; margin-bottom: 10px; }
+        .btn-draw-female { background: #ec4899; color: white; }
+        .btn:active { transform: scale(0.98); opacity: 0.9; }
 
-input,select{
-  width:100%;
-  padding:14px 16px;
-  font-size:16px;
-  border-radius:14px;
-  border:none;
-  background:rgba(255,255,255,.9);
-  box-shadow:inset 0 0 0 1px rgba(0,0,0,.06);
-  appearance:none;
-}
+        /* 盲盒动画层 */
+        .overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7); backdrop-filter: blur(5px);
+            display: none; justify-content: center; align-items: center; z-index: 1000;
+        }
+        .mystery-box { font-size: 80px; transition: 0.3s; }
+        
+        /* 结果弹窗 */
+        .result-box {
+            background: white; width: 85%; max-width: 320px; padding: 30px;
+            border-radius: 30px; position: relative; text-align: center;
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .close-btn { position: absolute; top: 15px; right: 20px; font-size: 24px; color: #cbd5e1; cursor: pointer; }
+        .res-avatar { font-size: 60px; margin-bottom: 10px; }
+        .res-name { font-size: 1.4rem; font-weight: bold; color: #1e293b; }
+        .res-details { color: #64748b; margin: 5px 0 20px; }
+        .res-contact {
+            background: #f1f5f9; padding: 15px; border-radius: 15px;
+            font-weight: bold; color: var(--primary-color); cursor: pointer;
+            border: 2px dashed #cbd5e1;
+        }
 
-/* ====== 按钮（iOS 风） ====== */
-.btn{
-  width:100%;
-  padding:15px;
-  border-radius:16px;
-  font-size:16px;
-  font-weight:600;
-  border:none;
-  cursor:pointer;
-  transition:.2s var(--ease-ios);
-}
-.btn:active{transform:scale(.96)}
+        /* Toast 提示 */
+        #toast-container { position: fixed; top: 30px; left: 50%; transform: translateX(-50%); z-index: 9999; }
+        .toast {
+            background: rgba(0,0,0,0.8); color: white; padding: 10px 20px; 
+            border-radius: 50px; margin-bottom: 10px; font-size: 0.9rem;
+            animation: slideDown 0.3s forwards, fadeOut 0.3s 2.7s forwards;
+        }
 
-.btn-submit{
-  background:linear-gradient(180deg,#111,#000);
-  color:#fff;
-  box-shadow:0 14px 32px rgba(0,0,0,.35);
-}
-.btn-draw-male{
-  background:rgba(0,122,255,.15);
-  color:#0051a8;
-  margin-bottom:10px;
-}
-.btn-draw-female{
-  background:rgba(255,45,85,.15);
-  color:#a8002a;
-}
+        /* 动画 */
+        @keyframes slideDown { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        @keyframes fadeOut { to { opacity: 0; transform: translateY(-10px); } }
+        @keyframes popIn { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .shake-anim { animation: shake 0.5s infinite; }
+        @keyframes shake {
+            0%, 100% { transform: rotate(0); }
+            25% { transform: rotate(5deg); }
+            75% { transform: rotate(-5deg); }
+        }
+        .explode-anim { animation: explode 0.5s forwards; }
+        @keyframes explode { to { transform: scale(2); opacity: 0; } }
 
-/* ====== 盲盒动画 ====== */
-.blind-box-container{
-  position:fixed;inset:0;
-  background:rgba(0,0,0,.55);
-  backdrop-filter:blur(18px);
-  display:none;
-  align-items:center;
-  justify-content:center;
-  flex-direction:column;
-  z-index:999;
-}
-.mystery-box{
-  font-size:96px;
-  animation:shake .8s var(--ease-ios) infinite;
-}
-@keyframes shake{
-  0%{transform:rotate(0)}
-  25%{transform:rotate(8deg)}
-  75%{transform:rotate(-8deg)}
-}
-.loading-text{
-  margin-top:18px;
-  color:#fff;
-  font-weight:600;
-}
-
-/* ====== 结果 ====== */
-.result-overlay{
-  position:fixed;inset:0;
-  background:rgba(0,0,0,.5);
-  display:none;
-  align-items:center;
-  justify-content:center;
-  z-index:1000;
-}
-.result-box{
-  background:rgba(255,255,255,.95);
-  border-radius:24px;
-  padding:26px 20px;
-  text-align:center;
-  animation:enter .5s var(--ease-ios);
-  width:82%;
-  max-width:320px;
-}
-.close-btn{
-  position:absolute;
-  top:12px;right:12px;
-  width:28px;height:28px;
-  border-radius:50%;
-  background:rgba(0,0,0,.1);
-  line-height:28px;
-}
-.res-avatar{font-size:54px}
-.res-name{font-size:22px;font-weight:700}
-.res-details{
-  font-size:13px;
-  color:#6e6e73;
-  margin:8px 0 14px;
-}
-.res-contact{
-  padding:14px;
-  border-radius:14px;
-  background:#fff;
-  color:#007AFF;
-  font-weight:600;
-}
-.tips{font-size:12px;color:#aaa;margin-top:10px}
-
-.footer{
-  text-align:center;
-  font-size:12px;
-  color:#aaa;
-  margin-top:10px;
-}
-/* --- 放在 style.css 最底部 --- */
-
-/* Toast 提示框容器 */
-#toast-container {
-    position: fixed;
-    top: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 9999;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    pointer-events: none; /* 只有文字部分可点击，不阻挡下方操作 */
-}
-
-/* 提示框本体 */
-.toast {
-    background: rgba(0, 0, 0, 0.85);
-    color: white;
-    padding: 12px 24px;
-    border-radius: 50px;
-    font-size: 0.9rem;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    animation: slideDown 0.3s ease-out, fadeOut 0.3s ease-in 2.7s forwards;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    backdrop-filter: blur(4px);
-}
-
-/* 成功样式 */
-.toast.success { border-left: 4px solid #10b981; }
-/* 错误样式 */
-.toast.error { border-left: 4px solid #ef4444; }
-
-@keyframes slideDown {
-    from { transform: translateY(-20px); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
-}
-@keyframes fadeOut {
-    to { opacity: 0; transform: translateY(-10px); }
-}
-</style>
+        .footer { font-size: 0.75rem; color: #94a3b8; margin-top: 25px; line-height: 1.5; }
+    </style>
 </head>
-
 <body>
-<div class="mesh-bg"></div>
+    <div class="mesh-bg"></div>
 
-<div class="viewport">
-  <div class="app">
+    <div class="container">
+        <header>
+            <h1>Signal Lab</h1>
+            <div class="stats">已连接 <span id="totalCount">...</span> 个同频信号</div>
+        </header>
 
-    <div class="navbar">
-      <h1><span class="status-dot"></span>Signal Lab</h1>
-      <p class="count-text">已连接 <span id="totalCount" style="color:#007AFF;font-weight:600">...</span> 个同频信号</p>
-    </div>
-
-    <!-- 发射 -->
-    <div class="card">
-      <div class="card-header">📡 发射信号</div>
-      <div class="form-group"><input id="nickname" placeholder="代号 / 昵称"></div>
-      <div class="form-row">
-        <div class="form-group" style="flex:1.4">
-          <select id="gender">
-            <option value="男">我是男生 👦</option>
-            <option value="女">我是女生 👧</option>
-          </select>
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('send')">📡 发射信号</button>
+            <button class="tab-btn" onclick="switchTab('receive')">🔍 捕捉信号</button>
         </div>
-        <div class="form-group"><input id="age" type="number" placeholder="年龄"></div>
-      </div>
-      <div class="form-group"><input id="city" placeholder="坐标 (如: 北京)"></div>
-      <div class="form-group"><input id="contact" placeholder="微信号 (仅匹配可见)"></div>
-      <button class="btn btn-submit" onclick="submitCard()">发射信号</button>
+
+        <div id="send-section" class="card">
+            <div class="input-group">
+                <label>我是</label>
+                <select id="gender">
+                    <option value="男">男生 👦</option>
+                    <option value="女">女生 👧</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label>昵称</label>
+                <input type="text" id="nickname" placeholder="怎么称呼你？">
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <div class="input-group" style="flex: 1;">
+                    <label>年龄</label>
+                    <input type="number" id="age" placeholder="年龄">
+                </div>
+                <div class="input-group" style="flex: 2;">
+                    <label>城市</label>
+                    <input type="text" id="city" placeholder="你在哪座城市？">
+                </div>
+            </div>
+            <div class="input-group">
+                <label>微信号 (仅被你抽中的人可见)</label>
+                <input type="text" id="contact" placeholder="填写正确微信号">
+            </div>
+            <button class="btn btn-submit" onclick="submitCard()">发射信号</button>
+            <div class="footer">Signal Lab © 2026<br>严禁上传违规内容，交友需谨慎</div>
+        </div>
+
+        <div id="receive-section" class="card" style="display: none;">
+            <div style="margin-bottom: 20px;">
+                <h3 style="margin: 0; color: #1e293b;">连接同频信号</h3>
+                <p style="font-size: 0.85rem; color: #64748b;">随机接入一个正在寻找你的 TA</p>
+            </div>
+            
+            <button class="btn btn-draw-male" onclick="drawCard('男')">捕捉男生 👦</button>
+            <button class="btn btn-draw-female" onclick="drawCard('女')">捕捉女生 👧</button>
+            
+            <div class="footer">每天只能捕捉 1 次信号哦<br>缘分正在路上...</div>
+        </div>
     </div>
 
-    <!-- 捕捉 -->
-    <div class="card">
-      <div class="card-header">🔍 捕捉信号</div>
-      <button class="btn btn-draw-male" onclick="drawCard('男')">捕捉男生 👦</button>
-      <button class="btn btn-draw-female" onclick="drawCard('女')">捕捉女生 👧</button>
+    <div id="blindBoxAnim" class="overlay">
+        <div style="text-align: center; color: white;">
+            <div id="mysteryBox" class="mystery-box">🎁</div>
+            <p id="loadingText" style="margin-top: 20px; letter-spacing: 2px;">正在锁定信号源...</p>
+        </div>
     </div>
 
-    <div class="footer">Signal Lab © 2026<br>网络交友需谨慎</div>
-  </div>
-</div>
+    <div id="resultOverlay" class="overlay" onclick="closeOverlay()">
+        <div class="result-box" onclick="event.stopPropagation()">
+            <div class="close-btn" onclick="closeOverlay()">×</div>
+            <div class="res-avatar" id="resIcon">👦</div>
+            <div class="res-name" id="resNick">未知用户</div>
+            <div class="res-details" id="resInfo">24岁 | 盐城</div>
+            <div class="res-contact" id="resContact" onclick="copyContact()">点击复制微信号</div>
+            <p style="font-size: 0.7rem; color: #94a3b8; margin-top: 15px;">👆 复制微信号去打个招呼吧</p>
+        </div>
+    </div>
 
-<!-- 盲盒 -->
-<div id="blindBoxAnim" class="blind-box-container">
-  <div class="mystery-box">🎁</div>
-  <div class="loading-text">正在锁定信号源...</div>
-</div>
+    <div id="toast-container"></div>
 
-<!-- 结果 -->
-<div id="resultOverlay" class="result-overlay" onclick="closeResult()">
-  <div class="result-box" onclick="event.stopPropagation()">
-    <div class="close-btn" onclick="closeResult()">×</div>
-    <div class="res-avatar" id="resIcon">🎉</div>
-    <div class="res-name" id="resNick">--</div>
-    <div class="res-details" id="resInfo">--</div>
-    <div class="res-contact" id="resContact" onclick="copyContact()">微信号</div>
-    <div class="tips">点击复制</div>
-  </div>
-</div>
-
-<script src="app.js"></script>
-<script>
-function closeResult(){
-  document.getElementById('resultOverlay').style.display='none'
-}
-</script>
-<div id="toast-container"></div>
+    <script src="app.js"></script>
 </body>
 </html>
